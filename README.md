@@ -376,3 +376,9 @@ Changelog
 
 **Version 1.0.0 - 1.1.0**
 * Initial Releases
+
+Additional features added by Ivan Tcholakov, 2012.
+--------------------------------------------------
+
+**UTILITY METHODS**
+* method exists($primary_value)
