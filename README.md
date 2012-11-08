@@ -437,7 +437,7 @@ class product_controller extends CI_Controller {
 ```
 
 **QUERY BUILDER DIRECT ACCESS METHODS**
-* Method select($select = '*', $escape = NULL) has been added. An example:
+* The method select($select = '*', $escape = NULL) has been added. An example:
 
 ```php
 $this->load->model('products');
