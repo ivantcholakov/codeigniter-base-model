@@ -381,4 +381,11 @@ Additional features added by Ivan Tcholakov, 2012.
 --------------------------------------------------
 
 **UTILITY METHODS**
-* method exists($primary_value)
+* Method exists($primary_value)
+
+**QUERY BUILDER DIRECT ACCESS METHODS**
+* Method select($select = '*', $escape = NULL). Example:
+
+    $this->load->model('products');
+    $product_list = $this->products->select('id, name, image')->get_all(); // Only the needed coulums are retrieved. 
+    var_dump($product_list);

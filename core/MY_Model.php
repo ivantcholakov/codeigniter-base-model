@@ -534,7 +534,6 @@ class MY_Model extends CI_Model
      * Checks whether a single record based on the primary key exists.
      * @param   mixed    $primary_value
      * @return  boolean
-     * @author Added by Ivan Tcholakov, 05-NOV-2012.
      */
     public function exists($primary_value)
     {
@@ -788,6 +787,15 @@ class MY_Model extends CI_Model
     public function limit($limit, $offset = 0)
     {
         $this->db->limit($limit, $offset);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->select()
+     */
+    public function select($select = '*', $escape = NULL)
+    {
+        $this->db->select($select, $escape);
         return $this;
     }
 
