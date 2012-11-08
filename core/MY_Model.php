@@ -1032,6 +1032,7 @@ class MY_Model extends CI_Model
         if (is_array($row))
         {
             if (!empty($row)) {
+                reset($row);
                 return current($row);
             }
         }
