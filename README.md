@@ -380,8 +380,61 @@ Changelog
 Additional features added by Ivan Tcholakov, 2012.
 --------------------------------------------------
 
+**BEHAVIOR CHANGES**
+* The clause LIMIT 1 has been added within the methods get(), get_by(), update(), update_by(), delete(), delete_by(). It should work with MySQL at least. This is for prevention targeting more than one records by an accident.
+
+**CRUD INTERFACE**
+* New methods update_many_by() and delete_many_by() have been added.
+
 **UTILITY METHODS**
-* Method exists($primary_value)
+* Method exists($primary_value). Sample usage:
+
+```php
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+
+class product_controller extends CI_Controller {
+
+    public function __construct() {
+
+        parent::__construct();
+
+        $this->load->model('products');
+
+        // URL: http://my-site.com/product/124 - 124 is our id to be validated.
+        $this->id = $this->_validate_product_id($this->uri->rsegment(3));
+    }
+
+    public function index() {
+
+        $product = $this->products->get($this->id);
+
+        // Show product data.
+        $this->load->view('product', $product);
+    }
+
+    // Other methods
+    // ...
+
+    protected function _validate_product_id($id) {
+
+        $id = (int) $id;
+
+        if (
+            empty($id)
+            ||
+            !$this->products->exists($id)   // Here we use our method exists().
+        ) {
+            if ($this->input->is_ajax_request()) {
+                exit;
+            }
+            show_404();
+        }
+
+        return $id;
+    }
+
+}
+```
 
 **QUERY BUILDER DIRECT ACCESS METHODS**
 * Method select($select = '*', $escape = NULL). An example:

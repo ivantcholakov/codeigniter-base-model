@@ -150,6 +150,7 @@ class MY_Model extends CI_Model
         }
 
         $row = $this->db->where($this->primary_key, $primary_value)
+                        ->limit(1)
                         ->get($this->_table)
                         ->{$this->_return_type()}();
         $this->_temporary_return_type = $this->return_type;
@@ -176,7 +177,9 @@ class MY_Model extends CI_Model
 
         $this->trigger('before_get');
 
-        $row = $this->db->get($this->_table)
+        $row = $this->db
+                        ->limit(1)
+                        ->get($this->_table)
                         ->{$this->_return_type()}();
         $this->_temporary_return_type = $this->return_type;
 
@@ -306,6 +309,7 @@ class MY_Model extends CI_Model
         {
             $result = $this->db->where($this->primary_key, $primary_value)
                                ->set($data)
+                               ->limit(1)
                                ->update($this->_table);
 
             $this->trigger('after_update', array($data, $result));
@@ -360,6 +364,32 @@ class MY_Model extends CI_Model
         if ($this->validate($data) !== FALSE)
         {
             $result = $this->db->set($data)
+                               ->limit(1)
+                               ->update($this->_table);
+            $this->trigger('after_update', array($data, $result));
+
+            return $result;
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    /**
+     * Update many records, based on an arbitrary WHERE clause.
+     */
+    public function update_many_by()
+    {
+        $args = func_get_args();
+        $data = array_pop($args);
+        $this->_set_where($args);
+
+        $data = $this->trigger('before_update', $data);
+
+        if ($this->validate($data) !== FALSE)
+        {
+            $result = $this->db->set($data)
                                ->update($this->_table);
             $this->trigger('after_update', array($data, $result));
 
@@ -395,11 +425,15 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $result = $this->db->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->db
+                                ->limit(1)
+                                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db->delete($this->_table);
+            $result = $this->db
+                                ->limit(1)
+                                ->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
@@ -419,11 +453,15 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $result = $this->db->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->db
+                                ->limit(1)
+                                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db->delete($this->_table);
+            $result = $this->db
+                                ->limit(1)
+                                ->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
@@ -439,6 +477,30 @@ class MY_Model extends CI_Model
         $primary_values = $this->trigger('before_delete', $primary_values);
 
         $this->db->where_in($this->primary_key, $primary_values);
+
+        if ($this->soft_delete)
+        {
+            $result = $this->db->update($this->_table, array( $this->soft_delete_key => TRUE ));
+        }
+        else
+        {
+            $result = $this->db->delete($this->_table);
+        }
+
+        $this->trigger('after_delete', $result);
+
+        return $result;
+    }
+
+    /**
+     * Delete many rows from the database table by an arbitrary WHERE clause
+     */
+    public function delete_many_by()
+    {
+        $where = func_get_args();
+        $this->_set_where($where);
+
+        $where = $this->trigger('before_delete', $where);
 
         if ($this->soft_delete)
         {
