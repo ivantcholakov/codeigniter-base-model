@@ -384,8 +384,10 @@ Additional features added by Ivan Tcholakov, 2012.
 * Method exists($primary_value)
 
 **QUERY BUILDER DIRECT ACCESS METHODS**
-* Method select($select = '*', $escape = NULL). Example:
+* Method select($select = '*', $escape = NULL). An example:
 
-    $this->load->model('products');
-    $product_list = $this->products->select('id, name, image')->get_all(); // Only the needed coulums are retrieved. 
-    var_dump($product_list);
+```php
+$this->load->model('products');
+$product_list = $this->products->select('id, name, image')->get_all(); // Only the needed coulums are retrieved. 
+var_dump($product_list);
+```
