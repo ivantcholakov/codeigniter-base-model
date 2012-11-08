@@ -110,6 +110,12 @@ class MY_Model extends CI_Model
     protected $return_type = 'object';
     protected $_temporary_return_type = NULL;
 
+    /**
+     * For the cases when we are intersted to retrieve a single value
+     * we may use `as_value()` scopes for convenience.
+     */
+    protected $_temporary_return_value = NULL;
+
     /* --------------------------------------------------------------
      * GENERIC METHODS
      * ------------------------------------------------------------ */
@@ -131,6 +137,7 @@ class MY_Model extends CI_Model
         array_unshift($this->before_update, 'protect_attributes');
 
         $this->_temporary_return_type = $this->return_type;
+        $this->_temporary_return_value = FALSE;
     }
 
     /* --------------------------------------------------------------
@@ -158,6 +165,11 @@ class MY_Model extends CI_Model
         $row = $this->trigger('after_get', $row);
 
         $this->_with = array();
+
+        if ($this->_temporary_return_value) {
+            return $this->_return_value($row);
+        }
+
         return $row;
     }
 
@@ -186,6 +198,11 @@ class MY_Model extends CI_Model
         $row = $this->trigger('after_get', $row);
 
         $this->_with = array();
+
+        if ($this->_temporary_return_value) {
+            return $this->_return_value($row);
+        }
+
         return $row;
     }
 
@@ -726,6 +743,15 @@ class MY_Model extends CI_Model
     }
 
     /**
+     * Converts the return row into a value (extracts the first column).
+     */
+    public function as_value()
+    {
+        $this->_temporary_return_value = TRUE;
+        return $this;
+    }
+
+    /**
      * Don't care about soft deleted rows on the next call
      */
     public function with_deleted()
@@ -995,4 +1021,29 @@ class MY_Model extends CI_Model
         $method = ($multi) ? 'result' : 'row';
         return $this->_temporary_return_type == 'array' ? $method . '_array' : $method;
     }
+
+    /**
+     * Returns a singe value (the first column) from a goven result row.
+     */
+    protected function _return_value(& $row)
+    {
+        $this->_temporary_return_value = FALSE;
+
+        if (is_array($row))
+        {
+            if (!empty($row)) {
+                return current($row);
+            }
+        }
+        elseif (is_object($row))
+        {
+            $row_array = get_object_vars($row);
+            if (!empty($row_array)) {
+                return current($row_array);
+            }
+        }
+
+        return NULL;
+    }
+
 }

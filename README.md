@@ -405,7 +405,7 @@ var_dump($search_list);
 * New methods update_many_by() and delete_many_by() have been added.
 
 **UTILITY METHODS**
-* Method exists($primary_value). Sample usage:
+* The method exists($primary_value) has been added. Sample usage:
 
 ```php
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
@@ -452,6 +452,20 @@ class product_controller extends CI_Controller {
     }
 
 }
+```
+
+**GLOBAL SCOPES**
+* A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
+
+```php
+$this->load->model('categories');
+
+$id = 10;
+
+$parent_id = $this->categories
+    ->select('parent_id')
+    ->as_value()
+    ->get($id);     // NULL is returned if the containing record is not found.
 ```
 
 **QUERY BUILDER DIRECT ACCESS METHODS**
