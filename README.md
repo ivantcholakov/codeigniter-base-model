@@ -388,6 +388,7 @@ Additional features added by Ivan Tcholakov, 2012.
 
 ```php
 $this->load->model('products');
-$product_list = $this->products->select('id, name, image')->get_all(); // Only the needed coulums are retrieved. 
+// Only the needed coulums are retrieved.
+$product_list = $this->products->select('id, name, image')->get_all();
 var_dump($product_list);
 ```
