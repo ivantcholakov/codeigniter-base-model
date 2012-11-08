@@ -970,8 +970,13 @@ class MY_Model extends CI_Model
     /**
      * Set WHERE parameters, cleverly
      */
-    protected function _set_where($params)
+    protected function _set_where($params = NULL)
     {
+        if (empty($params) || is_object($params))
+        {
+            return;
+        }
+
         if (count($params) == 1)
         {
             $this->db->where($params[0]);

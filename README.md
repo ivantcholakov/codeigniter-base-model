@@ -382,6 +382,24 @@ Additional Features by Ivan Tcholakov, 2012.
 
 **BEHAVIOR CHANGES**
 * The clause LIMIT 1 has been added within the methods get(), get_by(), update(), update_by(), delete(), delete_by(). It should work with MySQL at least. This is for prevention targeting more than one records by an accident.
+* The internal method _set_where() accepts an empty WHERE parameter (NULL or an empty string). So *_by() methods may be injected preliminary with complex WHERE clauses this way:
+
+```php
+$this->load->model('products');
+
+$this->products->db
+    ->where('out_of_stock', 0)
+    ->group_start()                         // As of CI 3.0.0
+    ->like('name', 'sandals')
+    ->or_like('description', 'sandals')
+    ->group_end()                           // As of CI 3.0.0
+;                                           // This is our complex WHERE clause.
+                                            // It is to be used by the next statement.
+
+$search_list = $this->products->get_many_by();  // get_many_by() without parameters.
+
+var_dump($search_list);
+```
 
 **CRUD INTERFACE**
 * New methods update_many_by() and delete_many_by() have been added.
