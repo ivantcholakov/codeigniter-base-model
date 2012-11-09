@@ -486,3 +486,4 @@ var_dump($product_list);
 ```
 
 * The methods escape(), escape_like_str() and escape_str() have been added.
+* More have been added: offset(), where(), or_where(), where_in(), or_where_in(), where_not_in(), or_where_not_in(), like(), not_like(), or_like(), or_not_like(), group_start(), or_group_start(), not_group_start(), or_not_group_start(), group_end(), group_by(), having(), or_having().

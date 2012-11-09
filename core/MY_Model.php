@@ -116,6 +116,11 @@ class MY_Model extends CI_Model
      */
     protected $_temporary_return_value = NULL;
 
+    /**
+     * CodeIgniter version check..
+     */
+    protected $_is_ci_3 = NULL;
+
     /* --------------------------------------------------------------
      * GENERIC METHODS
      * ------------------------------------------------------------ */
@@ -127,6 +132,8 @@ class MY_Model extends CI_Model
     public function __construct()
     {
         parent::__construct();
+
+        $this->_is_ci_3 = (int) CI_VERSION >= 3;
 
         $this->load->helper('inflector');
 
@@ -892,21 +899,7 @@ class MY_Model extends CI_Model
      */
     public function order_by($criteria, $order = '', $escape = NULL)
     {
-        if ((int) CI_VERSION < 3)
-        {
-            if ( is_array($criteria) )
-            {
-                foreach ($criteria as $key => $value)
-                {
-                    $this->db->order_by($key, $value);
-                }
-            }
-            else
-            {
-                $this->db->order_by($criteria, $order);
-            }
-        }
-        else
+        if ($this->_is_ci_3)
         {
             if ( is_array($criteria) )
             {
@@ -920,15 +913,39 @@ class MY_Model extends CI_Model
                 $this->db->order_by($criteria, $order, $escape);
             }
         }
+        else
+        {
+            if ( is_array($criteria) )
+            {
+                foreach ($criteria as $key => $value)
+                {
+                    $this->db->order_by($key, $value);
+                }
+            }
+            else
+            {
+                $this->db->order_by($criteria, $order);
+            }
+        }
+
         return $this;
     }
 
     /**
      * A wrapper to $this->db->limit()
      */
-    public function limit($limit, $offset = 0)
+    public function limit($limit, $offset = FALSE)
     {
         $this->db->limit($limit, $offset);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->offset()
+     */
+    public function offset($offset)
+    {
+        $this->db->offset($offset);
         return $this;
     }
 
@@ -963,6 +980,284 @@ class MY_Model extends CI_Model
     public function escape_str($str, $like = FALSE)
     {
         return $this->db->escape_str($str, $like);
+    }
+
+    /**
+     * A wrapper to $this->db->where()
+     */
+    public function where($key, $value = NULL, $escape = NULL)
+    {
+        $escape = $this->_check_default_escape($escape);
+        $this->db->where($key, $value, $escape);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_where()
+     */
+    public function or_where($key, $value = NULL, $escape = NULL)
+    {
+        $escape = $this->_check_default_escape($escape);
+        $this->db->or_where($key, $value, $escape);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->where_in()
+     */
+    public function where_in($key = NULL, $values = NULL, $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->where_in($key, $values, $escape);
+        }
+        else
+        {
+            $this->db->where_in($key, $values);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_where_in()
+     */
+    public function or_where_in($key = NULL, $values = NULL, $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_where_in($key, $values, $escape);
+        }
+        else
+        {
+            $this->db->or_where_in($key, $values);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->where_not_in()
+     */
+    public function where_not_in($key = NULL, $values = NULL, $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->where_not_in($key, $values, $escape);
+        }
+        else
+        {
+            $this->db->where_not_in($key, $values);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_where_not_in()
+     */
+    public function or_where_not_in($key = NULL, $values = NULL, $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_where_not_in($key, $values, $escape);
+        }
+        else
+        {
+            $this->db->or_where_not_in($key, $values);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->like()
+     */
+    public function like($field, $match = '', $side = 'both', $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->like($field, $match, $side, $escape);
+        }
+        else
+        {
+            $this->db->like($field, $match, $side);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->not_like()
+     */
+    public function not_like($field, $match = '', $side = 'both', $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->not_like($field, $match, $side, $escape);
+        }
+        else
+        {
+            $this->db->not_like($field, $match, $side);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_like()
+     */
+    public function or_like($field, $match = '', $side = 'both', $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_like($field, $match, $side, $escape);
+        }
+        else
+        {
+            $this->db->or_like($field, $match, $side);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_not_like()
+     */
+    public function or_not_like($field, $match = '', $side = 'both', $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_not_like($field, $match, $side, $escape);
+        }
+        else
+        {
+            $this->db->or_not_like($field, $match, $side);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->group_start()
+     */
+    public function group_start($not = '', $type = 'AND ')
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->group_start($not, $type);
+        }
+        else
+        {
+            die('DB::group_start() is not supported. Use CodeIgniter 3.0.0 or higher.');
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_group_start()
+     */
+    public function or_group_start()
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_group_start();
+        }
+        else
+        {
+            die('DB::or_group_start() is not supported. Use CodeIgniter 3.0.0 or higher.');
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->not_group_start()
+     */
+    public function not_group_start()
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->not_group_start();
+        }
+        else
+        {
+            die('DB::not_group_start() is not supported. Use CodeIgniter 3.0.0 or higher.');
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_not_group_start()
+     */
+    public function or_not_group_start()
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->or_not_group_start();
+        }
+        else
+        {
+            die('DB::or_not_group_start() is not supported. Use CodeIgniter 3.0.0 or higher.');
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->group_end()
+     */
+    public function group_end()
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->group_end();
+        }
+        else
+        {
+            die('DB::group_end() is not supported. Use CodeIgniter 3.0.0 or higher.');
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->group_by()
+     */
+    public function group_by($by, $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->db->group_by($by, $escape);
+        }
+        else
+        {
+            $this->db->group_by($by);
+        }
+
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->having()
+     */
+    public function having($key, $value = NULL, $escape = NULL)
+    {
+        $escape = $this->_check_default_escape($escape);
+        $this->db->having($key, $value, $escape);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->db->or_having()
+     */
+    public function or_having($key, $value = NULL, $escape = NULL)
+    {
+        $escape = $this->_check_default_escape($escape);
+        $this->db->having($key, $value, $escape);
+        return $this;
     }
 
    /* --------------------------------------------------------------
@@ -1134,7 +1429,12 @@ class MY_Model extends CI_Model
      */
     protected function _check_default_escape($escape)
     {
-        if (is_null($escape) && (int) CI_VERSION < 3)
+        if ($this->_is_ci_3)
+        {
+            return $escape;
+        }
+
+        if (is_null($escape))
         {
             return TRUE;
         }
