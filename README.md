@@ -502,3 +502,5 @@ $search_list = $this->products
 
 var_dump($search_list);
 ```
+
+* The method distinct() has been added.

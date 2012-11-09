@@ -959,6 +959,15 @@ class MY_Model extends CI_Model
     }
 
     /**
+     * A wrapper to $this->db->distinct()
+     */
+    public function distinct($val = TRUE)
+    {
+        $this->db->distinct($val);
+        return $this;
+    }
+
+    /**
      * A wrapper to $this->db->escape()
      */
     public function escape($str)
