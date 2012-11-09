@@ -400,6 +400,11 @@ $search_list = $this->products->get_many_by();  // get_many_by() without paramet
 
 var_dump($search_list);
 ```
+* The methods insert(), insert_many(), update(), update_many(), update_by(), update_many_by(), update_all() accept additional boolean parameter $escape. Use it wisely. An example:
+
+```php
+$this->products->update($id, array('preview_counter' => 'preview_counter + 1'), FALSE, FALSE);
+```
 
 **CRUD INTERFACE**
 * New methods update_many_by() and delete_many_by() have been added.
@@ -477,3 +482,5 @@ $this->load->model('products');
 $product_list = $this->products->select('id, name, image')->get_all();
 var_dump($product_list);
 ```
+
+* The methods escape(), escape_like_str() and escape_str() have been added.

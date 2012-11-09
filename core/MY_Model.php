@@ -267,8 +267,10 @@ class MY_Model extends CI_Model
      * Insert a new row into the table. $data should be an associative array
      * of data to be inserted. Returns newly created ID.
      */
-    public function insert($data, $skip_validation = FALSE)
+    public function insert($data, $skip_validation = FALSE, $escape = NULL)
     {
+        $escape = $this->_check_default_escape($escape);
+
         $valid = TRUE;
 
         if ($skip_validation === FALSE)
@@ -280,7 +282,9 @@ class MY_Model extends CI_Model
         {
             $data = $this->trigger('before_create', $data);
 
-            $this->db->insert($this->_table, $data);
+            $this->db
+                        ->set($data, '', $escape)
+                        ->insert($this->_table);
             $insert_id = $this->db->insert_id();
 
             $this->trigger('after_create', $insert_id);
@@ -296,13 +300,13 @@ class MY_Model extends CI_Model
     /**
      * Insert multiple rows into the table. Returns an array of multiple IDs.
      */
-    public function insert_many($data, $skip_validation = FALSE)
+    public function insert_many($data, $skip_validation = FALSE, $escape = NULL)
     {
         $ids = array();
 
         foreach ($data as $row)
         {
-            $ids[] = $this->insert($row, $skip_validation);
+            $ids[] = $this->insert($row, $skip_validation, $escape);
         }
 
         return $ids;
@@ -311,8 +315,10 @@ class MY_Model extends CI_Model
     /**
      * Updated a record based on the primary value.
      */
-    public function update($primary_value, $data, $skip_validation = FALSE)
+    public function update($primary_value, $data, $skip_validation = FALSE, $escape = NULL)
     {
+        $escape = $this->_check_default_escape($escape);
+
         $valid = TRUE;
 
         $data = $this->trigger('before_update', $data);
@@ -325,7 +331,7 @@ class MY_Model extends CI_Model
         if ($data !== FALSE)
         {
             $result = $this->db->where($this->primary_key, $primary_value)
-                               ->set($data)
+                               ->set($data, '', $escape)
                                ->limit(1)
                                ->update($this->_table);
 
@@ -342,8 +348,10 @@ class MY_Model extends CI_Model
     /**
      * Update many records, based on an array of primary values.
      */
-    public function update_many($primary_values, $data, $skip_validation = FALSE)
+    public function update_many($primary_values, $data, $skip_validation = FALSE, $escape = NULL)
     {
+        $escape = $this->_check_default_escape($escape);
+
         $data = $this->trigger('before_update', $data);
 
         if ($skip_validation === FALSE)
@@ -354,7 +362,7 @@ class MY_Model extends CI_Model
         if ($data !== FALSE)
         {
             $result = $this->db->where_in($this->primary_key, $primary_values)
-                               ->set($data)
+                               ->set($data, '', $escape)
                                ->update($this->_table);
 
             $this->trigger('after_update', array($data, $result));
@@ -372,17 +380,30 @@ class MY_Model extends CI_Model
      */
     public function update_by()
     {
+        $escape = $this->_check_default_escape(NULL);
+
         $args = func_get_args();
         $data = array_pop($args);
-        $this->_set_where($args);
+
+        if (count($args) < 3)
+        {
+            $this->_set_where($args);
+        }
+        else
+        {
+            $where = array_pop($args);
+            $this->_set_where($where);
+            $escape = $this->_check_default_escape($args);
+        }
 
         $data = $this->trigger('before_update', $data);
 
         if ($this->validate($data) !== FALSE)
         {
-            $result = $this->db->set($data)
-                               ->limit(1)
-                               ->update($this->_table);
+            $result = $this->db
+                                ->set($data, '', $escape)
+                                ->limit(1)
+                                ->update($this->_table);
             $this->trigger('after_update', array($data, $result));
 
             return $result;
@@ -398,16 +419,29 @@ class MY_Model extends CI_Model
      */
     public function update_many_by()
     {
+        $escape = $this->_check_default_escape(NULL);
+
         $args = func_get_args();
         $data = array_pop($args);
-        $this->_set_where($args);
+
+        if (count($args) < 3)
+        {
+            $this->_set_where($args);
+        }
+        else
+        {
+            $where = array_pop($args);
+            $this->_set_where($where);
+            $escape = $this->_check_default_escape($args);
+        }
 
         $data = $this->trigger('before_update', $data);
 
         if ($this->validate($data) !== FALSE)
         {
-            $result = $this->db->set($data)
-                               ->update($this->_table);
+            $result = $this->db
+                                ->set($data, '', $escape)
+                                ->update($this->_table);
             $this->trigger('after_update', array($data, $result));
 
             return $result;
@@ -421,11 +455,14 @@ class MY_Model extends CI_Model
     /**
      * Update all records
      */
-    public function update_all($data)
+    public function update_all($data, $escape = NULL)
     {
+        $escape = $this->_check_default_escape($escape);
+
         $data = $this->trigger('before_update', $data);
-        $result = $this->db->set($data)
-                           ->update($this->_table);
+        $result = $this->db
+                            ->set($data, '', $escape)
+                            ->update($this->_table);
         $this->trigger('after_update', array($data, $result));
 
         return $result;
@@ -887,7 +924,31 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    /* --------------------------------------------------------------
+    /**
+     * A wrapper to $this->db->escape()
+     */
+    public function escape($str)
+    {
+        return $this->db->escape($str);
+    }
+
+    /**
+     * A wrapper to $this->db->escape_like_str()
+     */
+    public function escape_like_str($str)
+    {
+        return $this->db->escape_like_str($str);
+    }
+
+    /**
+     * A wrapper to $this->db->escape_str()
+     */
+    public function escape_str($str, $like = FALSE)
+    {
+        return $this->db->escape_str($str, $like);
+    }
+
+   /* --------------------------------------------------------------
      * INTERNAL METHODS
      * ------------------------------------------------------------ */
 
@@ -1031,7 +1092,8 @@ class MY_Model extends CI_Model
 
         if (is_array($row))
         {
-            if (!empty($row)) {
+            if (!empty($row))
+            {
                 reset($row);
                 return current($row);
             }
@@ -1039,12 +1101,28 @@ class MY_Model extends CI_Model
         elseif (is_object($row))
         {
             $row_array = get_object_vars($row);
-            if (!empty($row_array)) {
+            if (!empty($row_array))
+            {
                 return current($row_array);
             }
         }
 
         return NULL;
+    }
+
+    /**
+     * Returns CI major version dependent default value for the $escape parameter.
+     * As of CI 3.0.0 the QB's method definition has been changed into:
+     * public function set($key, $value = '', $escape = NULL)
+     */
+    protected function _check_default_escape($escape)
+    {
+        if (is_null($escape) && (int) CI_VERSION < 3)
+        {
+            return TRUE;
+        }
+
+        return $escape;
     }
 
 }
