@@ -486,4 +486,19 @@ var_dump($product_list);
 ```
 
 * The methods escape(), escape_like_str() and escape_str() have been added.
-* More have been added: offset(), where(), or_where(), where_in(), or_where_in(), where_not_in(), or_where_not_in(), like(), not_like(), or_like(), or_not_like(), group_start(), or_group_start(), not_group_start(), or_not_group_start(), group_end(), group_by(), having(), or_having().
+* More have been added: offset(), where(), or_where(), where_in(), or_where_in(), where_not_in(), or_where_not_in(), like(), not_like(), or_like(), or_not_like(), group_start(), or_group_start(), not_group_start(), or_not_group_start(), group_end(), group_by(), having(), or_having(). Thus, one of the exmples shown above gets simplified:
+
+```php
+$this->load->model('products');
+
+$search_list = $this->products
+    ->where('out_of_stock', 0)
+    ->group_start()                         // Works on CI 3.0.0
+    ->like('name', 'sandals')
+    ->or_like('description', 'sandals')
+    ->group_end()                           // Works on CI 3.0.0
+    ->get_many_by()
+;
+
+var_dump($search_list);
+```
