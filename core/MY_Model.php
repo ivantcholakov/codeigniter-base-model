@@ -890,18 +890,35 @@ class MY_Model extends CI_Model
     /**
      * A wrapper to $this->db->order_by()
      */
-    public function order_by($criteria, $order = 'ASC')
+    public function order_by($criteria, $order = '', $escape = NULL)
     {
-        if ( is_array($criteria) )
+        if ((int) CI_VERSION < 3)
         {
-            foreach ($criteria as $key => $value)
+            if ( is_array($criteria) )
             {
-                $this->db->order_by($key, $value);
+                foreach ($criteria as $key => $value)
+                {
+                    $this->db->order_by($key, $value);
+                }
+            }
+            else
+            {
+                $this->db->order_by($criteria, $order);
             }
         }
         else
         {
-            $this->db->order_by($criteria, $order);
+            if ( is_array($criteria) )
+            {
+                foreach ($criteria as $key => $value)
+                {
+                    $this->db->order_by($key, $value, $escape);
+                }
+            }
+            else
+            {
+                $this->db->order_by($criteria, $order, $escape);
+            }
         }
         return $this;
     }

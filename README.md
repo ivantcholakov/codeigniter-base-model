@@ -406,6 +406,8 @@ var_dump($search_list);
 $this->products->update($id, array('preview_counter' => 'preview_counter + 1'), FALSE, FALSE);
 ```
 
+* The method order_by() accepts third parameter $escape which should work as of CI 3.0.0.
+
 **CRUD INTERFACE**
 * New methods update_many_by() and delete_many_by() have been added.
 
