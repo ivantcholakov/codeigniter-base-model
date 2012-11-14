@@ -399,6 +399,8 @@ $this->products->db
 $search_list = $this->products->get_many_by();  // get_many_by() without parameters.
 
 var_dump($search_list);
+
+// This was the "hackish" way. See below for an improved version of this example.
 ```
 * The methods insert(), insert_many(), update(), update_many(), update_by(), update_many_by(), update_all() accept additional boolean parameter $escape. Use it wisely. An example:
 
