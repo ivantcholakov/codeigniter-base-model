@@ -405,7 +405,10 @@ var_dump($search_list);
 * The methods insert(), insert_many(), update(), update_many(), update_by(), update_many_by(), update_all() accept additional boolean parameter $escape. Use it wisely. An example:
 
 ```php
-$this->products->update($id, array('preview_counter' => 'preview_counter + 1'), FALSE, FALSE);
+if ( ! $this->agent->is_robot())
+{
+    $this->products->update($id, array('preview_counter' => 'preview_counter + 1'), FALSE, FALSE);
+}
 ```
 
 * The method order_by() accepts third parameter $escape which should work as of CI 3.0.0.
@@ -419,9 +422,11 @@ $this->products->update($id, array('preview_counter' => 'preview_counter + 1'), 
 ```php
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-class product_controller extends CI_Controller {
+class product_controller extends CI_Controller
+{
 
-    public function __construct() {
+    public function __construct()
+    {
 
         parent::__construct();
 
@@ -431,7 +436,8 @@ class product_controller extends CI_Controller {
         $this->id = $this->_validate_product_id($this->uri->rsegment(3));
     }
 
-    public function index() {
+    public function index()
+    {
 
         $product = $this->products->get($this->id);
 
@@ -442,7 +448,8 @@ class product_controller extends CI_Controller {
     // Other methods
     // ...
 
-    protected function _validate_product_id($id) {
+    protected function _validate_product_id($id)
+    {
 
         $id = (int) $id;
 
@@ -451,7 +458,8 @@ class product_controller extends CI_Controller {
             ||
             !$this->products->exists($id)   // Here we use our method exists().
         ) {
-            if ($this->input->is_ajax_request()) {
+            if ($this->input->is_ajax_request())
+            {
                 exit;
             }
             show_404();
