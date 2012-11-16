@@ -427,7 +427,6 @@ class product_controller extends CI_Controller
 
     public function __construct()
     {
-
         parent::__construct();
 
         $this->load->model('products');
@@ -438,7 +437,6 @@ class product_controller extends CI_Controller
 
     public function index()
     {
-
         $product = $this->products->get($this->id);
 
         // Show product data.
@@ -450,7 +448,6 @@ class product_controller extends CI_Controller
 
     protected function _validate_product_id($id)
     {
-
         $id = (int) $id;
 
         if (
