@@ -508,6 +508,7 @@ $search_list = $this->products
     ->group_end()                           // Works on CI 3.0.0
     ->get_many_by()
 ;
+// SELECT * FROM `products` WHERE `out_of_stock` =0 AND ( `name` LIKE '%sandals%' ESCAPE '!' OR `description` LIKE '%sandals%' ESCAPE '!' )
 
 var_dump($search_list);
 ```
