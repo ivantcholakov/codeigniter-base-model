@@ -337,6 +337,11 @@ class MY_Model extends CI_Model
 
         if ($data !== FALSE)
         {
+            if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+            {
+                $this->db->where($this->soft_delete_key, FALSE);
+            }
+
             $result = $this->db->where($this->primary_key, $primary_value)
                                ->set($data, '', $escape)
                                ->limit(1)
@@ -368,6 +373,11 @@ class MY_Model extends CI_Model
 
         if ($data !== FALSE)
         {
+            if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+            {
+                $this->db->where($this->soft_delete_key, FALSE);
+            }
+
             $result = $this->db->where_in($this->primary_key, $primary_values)
                                ->set($data, '', $escape)
                                ->update($this->_table);
@@ -407,6 +417,11 @@ class MY_Model extends CI_Model
 
         if ($this->validate($data) !== FALSE)
         {
+            if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+            {
+                $this->db->where($this->soft_delete_key, FALSE);
+            }
+
             $result = $this->db
                                 ->set($data, '', $escape)
                                 ->limit(1)
@@ -446,6 +461,11 @@ class MY_Model extends CI_Model
 
         if ($this->validate($data) !== FALSE)
         {
+            if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+            {
+                $this->db->where($this->soft_delete_key, FALSE);
+            }
+
             $result = $this->db
                                 ->set($data, '', $escape)
                                 ->update($this->_table);
@@ -467,6 +487,12 @@ class MY_Model extends CI_Model
         $escape = $this->_check_default_escape($escape);
 
         $data = $this->trigger('before_update', $data);
+        
+        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+        {
+            $this->db->where($this->soft_delete_key, FALSE);
+        }
+
         $result = $this->db
                             ->set($data, '', $escape)
                             ->update($this->_table);
@@ -674,6 +700,11 @@ class MY_Model extends CI_Model
      */
     public function exists($primary_value)
     {
+        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+        {
+            $this->db->where($this->soft_delete_key, FALSE);
+        }
+
         $row = $this->db->select($this->primary_key)
                         ->where($this->primary_key, $primary_value)
                         ->limit(1)
@@ -731,6 +762,11 @@ class MY_Model extends CI_Model
         $where = func_get_args();
         $this->_set_where($where);
 
+        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+        {
+            $this->db->where($this->soft_delete_key, FALSE);
+        }
+
         return $this->db->count_all_results($this->_table);
     }
 
@@ -739,6 +775,11 @@ class MY_Model extends CI_Model
      */
     public function count_all()
     {
+        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+        {
+            $this->db->where($this->soft_delete_key, FALSE);
+        }
+
         return $this->db->count_all($this->_table);
     }
 
