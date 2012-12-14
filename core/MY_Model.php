@@ -313,7 +313,10 @@ class MY_Model extends CI_Model
 
         foreach ($data as $key => $row)
         {
-            $ids[] = $this->insert($row, $skip_validation, ($key == count($data) - 1));
+            // A correction by Ivan Tcholakov, 14-DEC-2012.
+            //$ids[] = $this->insert($row, $skip_validation, ($key == count($data) - 1));
+            $ids[] = $this->insert($row, $skip_validation, $escape);
+            //
         }
 
         return $ids;
