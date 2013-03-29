@@ -44,10 +44,22 @@ class MY_Model extends CI_Model
     protected $_table;
 
     /**
-     * Database conn object; will use default connection
-     * unless overridden
+     * Specify a database group to manually connect this model
+     * to the specified DB. You can pass either the group name
+     * as defined in application/config/database.php, or a
+     * config array of the same format (basically the same thing
+     * you can pass to $this->load->database()). If left empty,
+     * the default DB will be used.
      */
-    protected $_db;
+    protected $_db_group;
+    
+    /**
+     * The database connection object. Will be set to the default
+     * connection unless $this->_db_group is specified. This allows
+     * individual models to use different DBs without overwriting
+     * CI's global $this->db connection.
+     */
+    public $_database;
 
     /**
      * This model's default primary key or unique identifier.
@@ -160,10 +172,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $row = $this->db->where($this->primary_key, $primary_value)
+        $row = $this->_database->where($this->primary_key, $primary_value)
                         ->limit(1)
                         ->get($this->_table)
                         ->{$this->_return_type()}();
@@ -182,7 +194,7 @@ class MY_Model extends CI_Model
 
     /**
      * Fetch a single record based on an arbitrary WHERE call. Can be
-     * any valid value to $this->db->where().
+     * any valid value to $this->_database->where().
      */
     public function get_by()
     {
@@ -191,12 +203,12 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
         $this->trigger('before_get');
 
-        $row = $this->db
+        $row = $this->_database
                         ->limit(1)
                         ->get($this->_table)
                         ->{$this->_return_type()}();
@@ -220,10 +232,10 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $this->db->where_in($this->primary_key, $values);
+        $this->_database->where_in($this->primary_key, $values);
 
         return $this->get_all();
     }
@@ -238,7 +250,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
         return $this->get_all();
@@ -246,7 +258,7 @@ class MY_Model extends CI_Model
 
     /**
      * Fetch all the records in the table. Can be used as a generic call
-     * to $this->db->get() with scoped methods.
+     * to $this->_database->get() with scoped methods.
      */
     public function get_all()
     {
@@ -254,10 +266,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->db->get($this->_table)
+        $result = $this->_database->get($this->_table)
                            ->{$this->_return_type(1)}();
         $this->_temporary_return_type = $this->return_type;
 
@@ -289,10 +301,10 @@ class MY_Model extends CI_Model
         {
             $data = $this->trigger('before_create', $data);
 
-            $this->db
+            $this->_database
                         ->set($data, '', $escape)
                         ->insert($this->_table);
-            $insert_id = $this->db->insert_id();
+            $insert_id = $this->_database->insert_id();
 
             $this->trigger('after_create', $insert_id);
 
@@ -342,10 +354,10 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->db->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->db->where($this->primary_key, $primary_value)
+            $result = $this->_database->where($this->primary_key, $primary_value)
                                ->set($data, '', $escape)
                                ->limit(1)
                                ->update($this->_table);
@@ -378,10 +390,10 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->db->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->db->where_in($this->primary_key, $primary_values)
+            $result = $this->_database->where_in($this->primary_key, $primary_values)
                                ->set($data, '', $escape)
                                ->update($this->_table);
 
@@ -422,10 +434,10 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->db->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->db
+            $result = $this->_database
                                 ->set($data, '', $escape)
                                 ->limit(1)
                                 ->update($this->_table);
@@ -466,10 +478,10 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->db->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->db
+            $result = $this->_database
                                 ->set($data, '', $escape)
                                 ->update($this->_table);
             $this->trigger('after_update', array($data, $result));
@@ -493,10 +505,10 @@ class MY_Model extends CI_Model
         
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->db
+        $result = $this->_database
                             ->set($data, '', $escape)
                             ->update($this->_table);
         $this->trigger('after_update', array($data, $result));
@@ -511,17 +523,17 @@ class MY_Model extends CI_Model
     {
         $this->trigger('before_delete', $id);
 
-        $this->db->where($this->primary_key, $id);
+        $this->_database->where($this->primary_key, $id);
 
         if ($this->soft_delete)
         {
-            $result = $this->db
+            $result = $this->_database
                                 ->limit(1)
                                 ->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db
+            $result = $this->_database
                                 ->limit(1)
                                 ->delete($this->_table);
         }
@@ -543,13 +555,14 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $result = $this->db
+
+            $result = $this->_database
                                 ->limit(1)
                                 ->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db
+            $result = $this->_database
                                 ->limit(1)
                                 ->delete($this->_table);
         }
@@ -566,15 +579,15 @@ class MY_Model extends CI_Model
     {
         $primary_values = $this->trigger('before_delete', $primary_values);
 
-        $this->db->where_in($this->primary_key, $primary_values);
+        $this->_database->where_in($this->primary_key, $primary_values);
 
         if ($this->soft_delete)
         {
-            $result = $this->db->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db->delete($this->_table);
+            $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
@@ -594,11 +607,11 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $result = $this->db->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->db->delete($this->_table);
+            $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
@@ -612,7 +625,7 @@ class MY_Model extends CI_Model
      */
     public function truncate()
     {
-        $result = $this->db->truncate($this->_table);
+        $result = $this->_database->truncate($this->_table);
 
         return $result;
     }
@@ -705,10 +718,10 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $row = $this->db->select($this->primary_key)
+        $row = $this->_database->select($this->primary_key)
                         ->where($this->primary_key, $primary_value)
                         ->limit(1)
                         ->get($this->_table)
@@ -738,10 +751,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->db->select(array($key, $value))
+        $result = $this->_database->select(array($key, $value))
                            ->get($this->_table)
                            ->result();
 
@@ -767,10 +780,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        return $this->db->count_all_results($this->_table);
+        return $this->_database->count_all_results($this->_table);
     }
 
     /**
@@ -778,12 +791,13 @@ class MY_Model extends CI_Model
      */
     public function count_all()
     {
+
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->db->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        return $this->db->count_all($this->_table);
+        return $this->_database->count_all($this->_table);
     }
 
     /**
@@ -808,10 +822,10 @@ class MY_Model extends CI_Model
      */
     public function get_next_id()
     {
-        return (int) $this->db->select('AUTO_INCREMENT')
+        return (int) $this->_database->select('AUTO_INCREMENT')
             ->from('information_schema.TABLES')
             ->where('TABLE_NAME', $this->_table)
-            ->where('TABLE_SCHEMA', $this->db->database)->get()->row()->AUTO_INCREMENT;
+            ->where('TABLE_SCHEMA', $this->_database->database)->get()->row()->AUTO_INCREMENT;
     }
 
     /**
@@ -953,7 +967,7 @@ class MY_Model extends CI_Model
      * ------------------------------------------------------------ */
 
     /**
-     * A wrapper to $this->db->order_by()
+     * A wrapper to $this->_database->order_by()
      */
     public function order_by($criteria, $order = '', $escape = NULL)
     {
@@ -963,12 +977,12 @@ class MY_Model extends CI_Model
             {
                 foreach ($criteria as $key => $value)
                 {
-                    $this->db->order_by($key, $value, $escape);
+                    $this->_database->order_by($key, $value, $escape);
                 }
             }
             else
             {
-                $this->db->order_by($criteria, $order, $escape);
+                $this->_database->order_by($criteria, $order, $escape);
             }
         }
         else
@@ -977,12 +991,12 @@ class MY_Model extends CI_Model
             {
                 foreach ($criteria as $key => $value)
                 {
-                    $this->db->order_by($key, $value);
+                    $this->_database->order_by($key, $value);
                 }
             }
             else
             {
-                $this->db->order_by($criteria, $order);
+                $this->_database->order_by($criteria, $order);
             }
         }
 
@@ -990,229 +1004,229 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->limit()
+     * A wrapper to $this->_database->limit()
      */
     public function limit($limit, $offset = FALSE)
     {
-        $this->db->limit($limit, $offset);
+        $this->_database->limit($limit, $offset);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->offset()
+     * A wrapper to $this->_database->offset()
      */
     public function offset($offset)
     {
-        $this->db->offset($offset);
+        $this->_database->offset($offset);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->select()
+     * A wrapper to $this->_database->select()
      */
     public function select($select = '*', $escape = NULL)
     {
-        $this->db->select($select, $escape);
+        $this->_database->select($select, $escape);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->distinct()
+     * A wrapper to $this->_database->distinct()
      */
     public function distinct($val = TRUE)
     {
-        $this->db->distinct($val);
+        $this->_database->distinct($val);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->escape()
+     * A wrapper to $this->_database->escape()
      */
     public function escape($str)
     {
-        return $this->db->escape($str);
+        return $this->_database->escape($str);
     }
 
     /**
-     * A wrapper to $this->db->escape_like_str()
+     * A wrapper to $this->_database->escape_like_str()
      */
     public function escape_like_str($str)
     {
-        return $this->db->escape_like_str($str);
+        return $this->_database->escape_like_str($str);
     }
 
     /**
-     * A wrapper to $this->db->escape_str()
+     * A wrapper to $this->_database->escape_str()
      */
     public function escape_str($str, $like = FALSE)
     {
-        return $this->db->escape_str($str, $like);
+        return $this->_database->escape_str($str, $like);
     }
 
     /**
-     * A wrapper to $this->db->where()
+     * A wrapper to $this->_database->where()
      */
     public function where($key, $value = NULL, $escape = NULL)
     {
         $escape = $this->_check_default_escape($escape);
-        $this->db->where($key, $value, $escape);
+        $this->_database->where($key, $value, $escape);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_where()
+     * A wrapper to $this->_database->or_where()
      */
     public function or_where($key, $value = NULL, $escape = NULL)
     {
         $escape = $this->_check_default_escape($escape);
-        $this->db->or_where($key, $value, $escape);
+        $this->_database->or_where($key, $value, $escape);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->where_in()
+     * A wrapper to $this->_database->where_in()
      */
     public function where_in($key = NULL, $values = NULL, $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->where_in($key, $values, $escape);
+            $this->_database->where_in($key, $values, $escape);
         }
         else
         {
-            $this->db->where_in($key, $values);
+            $this->_database->where_in($key, $values);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_where_in()
+     * A wrapper to $this->_database->or_where_in()
      */
     public function or_where_in($key = NULL, $values = NULL, $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_where_in($key, $values, $escape);
+            $this->_database->or_where_in($key, $values, $escape);
         }
         else
         {
-            $this->db->or_where_in($key, $values);
+            $this->_database->or_where_in($key, $values);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->where_not_in()
+     * A wrapper to $this->_database->where_not_in()
      */
     public function where_not_in($key = NULL, $values = NULL, $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->where_not_in($key, $values, $escape);
+            $this->_database->where_not_in($key, $values, $escape);
         }
         else
         {
-            $this->db->where_not_in($key, $values);
+            $this->_database->where_not_in($key, $values);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_where_not_in()
+     * A wrapper to $this->_database->or_where_not_in()
      */
     public function or_where_not_in($key = NULL, $values = NULL, $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_where_not_in($key, $values, $escape);
+            $this->_database->or_where_not_in($key, $values, $escape);
         }
         else
         {
-            $this->db->or_where_not_in($key, $values);
+            $this->_database->or_where_not_in($key, $values);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->like()
+     * A wrapper to $this->_database->like()
      */
     public function like($field, $match = '', $side = 'both', $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->like($field, $match, $side, $escape);
+            $this->_database->like($field, $match, $side, $escape);
         }
         else
         {
-            $this->db->like($field, $match, $side);
+            $this->_database->like($field, $match, $side);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->not_like()
+     * A wrapper to $this->_database->not_like()
      */
     public function not_like($field, $match = '', $side = 'both', $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->not_like($field, $match, $side, $escape);
+            $this->_database->not_like($field, $match, $side, $escape);
         }
         else
         {
-            $this->db->not_like($field, $match, $side);
+            $this->_database->not_like($field, $match, $side);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_like()
+     * A wrapper to $this->_database->or_like()
      */
     public function or_like($field, $match = '', $side = 'both', $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_like($field, $match, $side, $escape);
+            $this->_database->or_like($field, $match, $side, $escape);
         }
         else
         {
-            $this->db->or_like($field, $match, $side);
+            $this->_database->or_like($field, $match, $side);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_not_like()
+     * A wrapper to $this->_database->or_not_like()
      */
     public function or_not_like($field, $match = '', $side = 'both', $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_not_like($field, $match, $side, $escape);
+            $this->_database->or_not_like($field, $match, $side, $escape);
         }
         else
         {
-            $this->db->or_not_like($field, $match, $side);
+            $this->_database->or_not_like($field, $match, $side);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->group_start()
+     * A wrapper to $this->_database->group_start()
      */
     public function group_start($not = '', $type = 'AND ')
     {
         if ($this->_is_ci_3)
         {
-            $this->db->group_start($not, $type);
+            $this->_database->group_start($not, $type);
         }
         else
         {
@@ -1223,13 +1237,13 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->or_group_start()
+     * A wrapper to $this->_database->or_group_start()
      */
     public function or_group_start()
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_group_start();
+            $this->_database->or_group_start();
         }
         else
         {
@@ -1240,13 +1254,13 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->not_group_start()
+     * A wrapper to $this->_database->not_group_start()
      */
     public function not_group_start()
     {
         if ($this->_is_ci_3)
         {
-            $this->db->not_group_start();
+            $this->_database->not_group_start();
         }
         else
         {
@@ -1257,13 +1271,13 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->or_not_group_start()
+     * A wrapper to $this->_database->or_not_group_start()
      */
     public function or_not_group_start()
     {
         if ($this->_is_ci_3)
         {
-            $this->db->or_not_group_start();
+            $this->_database->or_not_group_start();
         }
         else
         {
@@ -1274,13 +1288,13 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->group_end()
+     * A wrapper to $this->_database->group_end()
      */
     public function group_end()
     {
         if ($this->_is_ci_3)
         {
-            $this->db->group_end();
+            $this->_database->group_end();
         }
         else
         {
@@ -1291,39 +1305,39 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * A wrapper to $this->db->group_by()
+     * A wrapper to $this->_database->group_by()
      */
     public function group_by($by, $escape = NULL)
     {
         if ($this->_is_ci_3)
         {
-            $this->db->group_by($by, $escape);
+            $this->_database->group_by($by, $escape);
         }
         else
         {
-            $this->db->group_by($by);
+            $this->_database->group_by($by);
         }
 
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->having()
+     * A wrapper to $this->_database->having()
      */
     public function having($key, $value = NULL, $escape = NULL)
     {
         $escape = $this->_check_default_escape($escape);
-        $this->db->having($key, $value, $escape);
+        $this->_database->having($key, $value, $escape);
         return $this;
     }
 
     /**
-     * A wrapper to $this->db->or_having()
+     * A wrapper to $this->_database->or_having()
      */
     public function or_having($key, $value = NULL, $escape = NULL)
     {
         $escape = $this->_check_default_escape($escape);
-        $this->db->having($key, $value, $escape);
+        $this->_database->having($key, $value, $escape);
         return $this;
     }
 
@@ -1418,22 +1432,28 @@ class MY_Model extends CI_Model
         }
     }
 
-    /* --------------------------------------------------------------
-     * MULTIPLE DB LOADING
-     * ------------------------------------------------------------ */
-
+    /**
+     * Establish the database connection.
+     */
     private function _set_database()
     {
-        if (!$this->_db)
+        // Was a DB group specified by the user?
+        if ($this->_db_group !== NULL)
         {
-            $this->load->database();
+            $this->_database = $this->load->database($this->_db_group, TRUE, TRUE);
         }
+        // No DB group specified, use the default connection.
         else
         {
-            $this->db = $this->load->database($this->_db, TRUE);
+            // Has the default connection been loaded yet?
+            if ( ! isset($this->db) OR ! is_object($this->db))
+            {
+                $this->load->database('', FALSE, TRUE);
+            }
+
+            $this->_database = $this->db;
         }
     }
-
 
     /**
      * Set WHERE parameters, cleverly
@@ -1447,11 +1467,11 @@ class MY_Model extends CI_Model
 
         if (count($params) == 1)
         {
-            $this->db->where($params[0]);
+            $this->_database->where($params[0]);
         }
         else
         {
-            $this->db->where($params[0], $params[1]);
+            $this->_database->where($params[0], $params[1]);
         }
     }
 
