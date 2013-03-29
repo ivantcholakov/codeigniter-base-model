@@ -503,6 +503,32 @@ $parent_id = $this->categories
     ->get($id);     // NULL is returned if the containing record is not found.
 ```
 
+* A new method as_sql() has been added. It forces get*(), insert*(), update*(), delete*() and some other methods to return compiled SQL as a string (or an array of strings). This result modifier is convenient for debugging purposes. An example:
+
+```php
+$this->load->model('products');
+
+$result = $this->products
+    ->as_sql()
+    ->select('id, image, slug, category_id, name, promotext')
+    ->distinct()
+    ->where('is_promotion', 1)
+    ->where('out_of_stock', 0)
+    ->order_by('promotext', 'desc')
+    ->order_by('category_id', 'asc')
+    ->get_many_by();
+
+var_dump($result);
+
+/* The result is the following SQL statement:
+SELECT DISTINCT `id`, `image`, `slug`, `category_id`, `name`, `promotext`
+FROM `products`
+WHERE `is_promotion` = 1
+AND `out_of_stock` =0
+ORDER BY `promotext` DESC, `category_id` ASC
+*/
+```
+
 **QUERY BUILDER DIRECT ACCESS METHODS**
 * The method select($select = '*', $escape = NULL) has been added. An example:
 

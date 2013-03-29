@@ -126,12 +126,34 @@ class MY_Model extends CI_Model
      * For the cases when we are intersted to retrieve a single value
      * we may use `as_value()` scopes for convenience.
      */
-    protected $_temporary_return_value = NULL;
+    protected $qb_as_value = NULL;
 
     /**
-     * CodeIgniter version check..
+     * For the cases when we are intersted to retrieve a single value
+     * we may use `as_value()` scopes for convenience.
+     */
+    protected $qb_as_sql = NULL;
+
+    /**
+     * A flag indicating $this->distinct() usage.
+     */
+    protected $qb_distinct = NULL;
+
+    /**
+     * CodeIgniter version check.
      */
     protected $_is_ci_3 = NULL;
+
+    /**
+     * Driver info.
+     */
+    protected $_dbdriver = NULL;
+    protected $_subdriver = NULL;
+
+    /**
+     * Driver specific SQL fragments.
+     */
+    protected $_count_string = 'SELECT COUNT(*) AS ';
 
     /* --------------------------------------------------------------
      * GENERIC METHODS
@@ -155,8 +177,19 @@ class MY_Model extends CI_Model
         array_unshift($this->before_create, 'protect_attributes');
         array_unshift($this->before_update, 'protect_attributes');
 
-        $this->_temporary_return_type = $this->return_type;
-        $this->_temporary_return_value = FALSE;
+        $this->_reset_state();
+
+        $this->_dbdriver = isset($this->_database->dbdriver)
+            ? $this->_database->dbdriver
+            : NULL;
+
+        $this->_subdriver = isset($this->_database->subdriver)
+            ? $this->_database->subdriver
+            : NULL;
+
+        if ($this->_dbdriver == 'oci8' || $this->_subdriver = 'oci') {
+            $this->_count_string = 'SELECT COUNT(1) AS ';
+        }
     }
 
     /* --------------------------------------------------------------
@@ -168,26 +201,35 @@ class MY_Model extends CI_Model
      */
     public function get($primary_value)
     {
-        $this->trigger('before_get');
+        $this->_database->where($this->primary_key, $primary_value)
+            ->limit(1);
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $row = $this->_database->where($this->primary_key, $primary_value)
-                        ->limit(1)
-                        ->get($this->_table)
-                        ->{$this->_return_type()}();
-        $this->_temporary_return_type = $this->return_type;
+        $this->trigger('before_get');
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('select');
+        }
+        
+        $row = $this->_database
+            ->get($this->_table)
+            ->{$this->_return_type()}();
 
         $row = $this->trigger('after_get', $row);
 
-        $this->_with = array();
-
-        if ($this->_temporary_return_value) {
+        if ($this->qb_as_value)
+        {
+            // Return a single value as a result.
             return $this->_return_value($row);
         }
+
+        $this->_reset_state();
 
         return $row;
     }
@@ -200,6 +242,7 @@ class MY_Model extends CI_Model
     {
         $where = func_get_args();
         $this->_set_where($where);
+        $this->_database->limit(1);
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
@@ -208,19 +251,25 @@ class MY_Model extends CI_Model
 
         $this->trigger('before_get');
 
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('select');
+        }
+        
         $row = $this->_database
-                        ->limit(1)
-                        ->get($this->_table)
-                        ->{$this->_return_type()}();
-        $this->_temporary_return_type = $this->return_type;
+            ->get($this->_table)
+            ->{$this->_return_type()}();
 
         $row = $this->trigger('after_get', $row);
 
-        $this->_with = array();
-
-        if ($this->_temporary_return_value) {
+        if ($this->qb_as_value)
+        {
+            // Return a single value as a result.
             return $this->_return_value($row);
         }
+
+        $this->_reset_state();
 
         return $row;
     }
@@ -230,11 +279,6 @@ class MY_Model extends CI_Model
      */
     public function get_many($values)
     {
-        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
-        {
-            $this->_database->where($this->soft_delete_key, FALSE);
-        }
-
         $this->_database->where_in($this->primary_key, $values);
 
         return $this->get_all();
@@ -248,11 +292,6 @@ class MY_Model extends CI_Model
         $where = func_get_args();
         $this->_set_where($where);
 
-        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
-        {
-            $this->_database->where($this->soft_delete_key, FALSE);
-        }
-
         return $this->get_all();
     }
 
@@ -262,23 +301,30 @@ class MY_Model extends CI_Model
      */
     public function get_all()
     {
-        $this->trigger('before_get');
-
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->_database->get($this->_table)
-                           ->{$this->_return_type(1)}();
-        $this->_temporary_return_type = $this->return_type;
+        $this->trigger('before_get');
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('select');
+        }
+        
+        $result = $this->_database
+            ->get($this->_table)
+            ->{$this->_return_type(1)}();
 
         foreach ($result as $key => &$row)
         {
             $row = $this->trigger('after_get', $row, ($key == count($result) - 1));
         }
 
-        $this->_with = array();
+        $this->_reset_state();
+
         return $result;
     }
 
@@ -301,19 +347,26 @@ class MY_Model extends CI_Model
         {
             $data = $this->trigger('before_create', $data);
 
-            $this->_database
-                        ->set($data, '', $escape)
-                        ->insert($this->_table);
+            $this->_database->set($data, '', $escape);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('insert');
+            }
+
+            $this->_database->insert($this->_table);
+
             $insert_id = $this->_database->insert_id();
 
             $this->trigger('after_create', $insert_id);
 
             return $insert_id;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        $this->_reset_state();
+
+        return FALSE;
     }
 
     /**
@@ -321,10 +374,14 @@ class MY_Model extends CI_Model
      */
     public function insert_many($data, $skip_validation = FALSE, $escape = NULL)
     {
+        $return_sql = $this->qb_as_sql;
+
         $ids = array();
 
         foreach ($data as $key => $row)
         {
+            $this->qb_as_sql = $return_sql;
+
             // A correction by Ivan Tcholakov, 14-DEC-2012.
             //$ids[] = $this->insert($row, $skip_validation, ($key == count($data) - 1));
             $ids[] = $this->insert($row, $skip_validation, $escape);
@@ -357,19 +414,27 @@ class MY_Model extends CI_Model
                 $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->_database->where($this->primary_key, $primary_value)
-                               ->set($data, '', $escape)
-                               ->limit(1)
-                               ->update($this->_table);
+            $this->_database->where($this->primary_key, $primary_value)
+                ->set($data, '', $escape)->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('update');
+            }
+
+            $result = $this->_database->update($this->_table);
 
             $this->trigger('after_update', array($data, $result));
 
+            $this->_reset_state();
+
             return $result;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        $this->_reset_state();
+
+        return FALSE;
     }
 
     /**
@@ -393,18 +458,27 @@ class MY_Model extends CI_Model
                 $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->_database->where_in($this->primary_key, $primary_values)
-                               ->set($data, '', $escape)
-                               ->update($this->_table);
+            $this->_database->where_in($this->primary_key, $primary_values)
+                ->set($data, '', $escape);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('update');
+            }
+
+            $result = $this->_database->update($this->_table);
 
             $this->trigger('after_update', array($data, $result));
 
+            $this->_reset_state();
+
             return $result;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        $this->_reset_state();
+
+        return FALSE;
     }
 
     /**
@@ -437,18 +511,26 @@ class MY_Model extends CI_Model
                 $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->_database
-                                ->set($data, '', $escape)
-                                ->limit(1)
-                                ->update($this->_table);
+            $this->_database->set($data, '', $escape)->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('update');
+            }
+
+            $result = $this->_database->update($this->_table);
+
             $this->trigger('after_update', array($data, $result));
+
+            $this->_reset_state();
 
             return $result;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        $this->_reset_state();
+
+        return FALSE;
     }
 
     /**
@@ -481,17 +563,26 @@ class MY_Model extends CI_Model
                 $this->_database->where($this->soft_delete_key, FALSE);
             }
 
-            $result = $this->_database
-                                ->set($data, '', $escape)
-                                ->update($this->_table);
+            $this->_database->set($data, '', $escape);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('update');
+            }
+
+            $result = $this->_database->update($this->_table);
+
             $this->trigger('after_update', array($data, $result));
+
+            $this->_reset_state();
 
             return $result;
         }
-        else
-        {
-            return FALSE;
-        }
+
+        $this->_reset_state();
+
+        return FALSE;
     }
 
     /**
@@ -508,10 +599,19 @@ class MY_Model extends CI_Model
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->_database
-                            ->set($data, '', $escape)
-                            ->update($this->_table);
+        $this->_database->set($data, '', $escape);
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('update');
+        }
+
+        $result = $this->_database->update($this->_table);
+
         $this->trigger('after_update', array($data, $result));
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -527,18 +627,33 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $result = $this->_database
-                                ->limit(1)
-                                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $this->_database->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                $this->_database->set($this->soft_delete_key, TRUE);
+                return $this->_return_sql('update');
+            }
+
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->_database
-                                ->limit(1)
-                                ->delete($this->_table);
+            $this->_database->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('delete');
+            }
+
+            $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -555,19 +670,34 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
+            $this->_database->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                $this->_database->set($this->soft_delete_key, TRUE);
+                return $this->_return_sql('update');
+            }
 
             $result = $this->_database
-                                ->limit(1)
-                                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
+                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
-            $result = $this->_database
-                                ->limit(1)
-                                ->delete($this->_table);
+            $this->_database->limit(1);
+
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('delete');
+            }
+
+            $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -583,14 +713,29 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                $this->_database->set($this->soft_delete_key, TRUE);
+                return $this->_return_sql('update');
+            }
+
             $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('delete');
+            }
+
             $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -607,14 +752,29 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                $this->_database->set($this->soft_delete_key, TRUE);
+                return $this->_return_sql('update');
+            }
+
             $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
         }
         else
         {
+            if ($this->qb_as_sql)
+            {
+                // Return an SQL statement as a result.
+                return $this->_return_sql('delete');
+            }
+
             $result = $this->_database->delete($this->_table);
         }
 
         $this->trigger('after_delete', $result);
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -625,7 +785,15 @@ class MY_Model extends CI_Model
      */
     public function truncate()
     {
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('truncate');
+        }
+
         $result = $this->_database->truncate($this->_table);
+
+        $this->_reset_state();
 
         return $result;
     }
@@ -721,11 +889,19 @@ class MY_Model extends CI_Model
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $row = $this->_database->select($this->primary_key)
-                        ->where($this->primary_key, $primary_value)
-                        ->limit(1)
-                        ->get($this->_table)
-                        ->row_array();
+        $this->_database->select($this->primary_key)
+            ->where($this->primary_key, $primary_value)
+            ->limit(1);
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('select');
+        }
+        
+        $row = $this->_database->get($this->_table)->row_array();
+
+        $this->_reset_state();
 
         return isset($row[$this->primary_key]);
     }
@@ -754,18 +930,26 @@ class MY_Model extends CI_Model
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
-        $result = $this->_database->select(array($key, $value))
-                           ->get($this->_table)
-                           ->result();
+        $this->_database->select(array($key, $value));
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+            return $this->_return_sql('select');
+        }
+        
+        $result = $this->_database->get($this->_table)->result_array();
 
         $options = array();
 
         foreach ($result as $row)
         {
-            $options[$row->{$key}] = $row->{$value};
+            $options[$row[$key]] = $row[$value];
         }
 
         $options = $this->trigger('after_dropdown', $options);
+
+        $this->_reset_state();
 
         return $options;
     }
@@ -778,26 +962,57 @@ class MY_Model extends CI_Model
         $where = func_get_args();
         $this->_set_where($where);
 
+        // Modified by Ivan Tcholakov, 29-MAR-2013.
+        /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
         return $this->_database->count_all_results($this->_table);
+        */
+
+        return $this->count_all();
     }
 
     /**
-     * Fetch a total count of rows, disregarding any previous conditions
+     * Fetch a total count of rows.
      */
     public function count_all()
     {
-
+        // Modified by Ivan Tcholakov, 29-MAR-2013.
+        /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where($this->soft_delete_key, FALSE);
         }
 
         return $this->_database->count_all($this->_table);
+        */
+
+        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
+        {
+            $this->_database->where($this->soft_delete_key, FALSE);
+        }
+
+        if ($this->qb_as_sql)
+        {
+            // Return an SQL statement as a result.
+
+            $result = ($this->qb_distinct === TRUE)
+                ? $this->_count_string.$this->protect_identifiers('numrows')."\nFROM (\n".$this->_database->get_compiled_select($this->_table, true)."\n) CI_count_all_results"
+                : $this->_count_string.$this->_database->protect_identifiers('numrows');
+
+            $this->_reset_state();
+
+            return $result;
+        }
+
+        $result = $this->_database->count_all_results($this->_table);
+
+        $this->_reset_state();
+
+        return $result;
     }
 
     /**
@@ -887,7 +1102,7 @@ class MY_Model extends CI_Model
      */
     public function as_value()
     {
-        $this->_temporary_return_value = TRUE;
+        $this->qb_as_value = TRUE;
         return $this;
     }
 
@@ -897,6 +1112,16 @@ class MY_Model extends CI_Model
     public function with_deleted()
     {
         $this->_temporary_with_deleted = TRUE;
+        return $this;
+    }
+
+    /**
+     * Forces returning compiled SQL statement(s) as a result.
+     * This scope is intended for debugging purposes.
+     */
+    public function as_sql()
+    {
+        $this->qb_as_sql = TRUE;
         return $this;
     }
 
@@ -1059,6 +1284,7 @@ class MY_Model extends CI_Model
      */
     public function distinct($val = TRUE)
     {
+        $this->qb_distinct = is_bool($val) ? $val : TRUE;
         $this->_database->distinct($val);
         return $this;
     }
@@ -1509,11 +1735,11 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * Returns a singe value (the first column) from a goven result row.
+     * Returns a singe value (the first column) from a given result row.
      */
     protected function _return_value(& $row)
     {
-        $this->_temporary_return_value = FALSE;
+        $this->_reset_state();
 
         if (is_array($row))
         {
@@ -1536,6 +1762,43 @@ class MY_Model extends CI_Model
     }
 
     /**
+     * Returns a compiled SQL statement based on the current Query Builder state.
+     * Also resets the Query Builder state and the internal state of this class.
+     */
+    protected function _return_sql($sql_type)
+    {
+        $this->_reset_state();
+
+        switch ($sql_type)
+        {
+            case 'select':
+
+                return $this->_database->get_compiled_select($this->_table, true);
+
+            case 'insert':
+
+                return $this->_database->get_compiled_insert($this->_table, true);
+
+            case 'update':
+
+                return $this->_database->get_compiled_update($this->_table, true);
+
+            case 'delete':
+
+                return $this->_database->get_compiled_delete($this->_table, true);
+
+            case 'truncate':
+
+                if ($this->_is_ci_3)
+                {
+                    return 'TRUNCATE '.$this->_database->protect_identifiers($this->_table, TRUE, NULL, FALSE);
+                }
+
+                return 'TRUNCATE '.$this->_database->protect_identifiers($this->_table, TRUE);
+        }
+    }
+
+    /**
      * Returns CI major version dependent default value for the $escape parameter.
      * As of CI 3.0.0 the QB's method definition has been changed into:
      * public function set($key, $value = '', $escape = NULL)
@@ -1553,6 +1816,20 @@ class MY_Model extends CI_Model
         }
 
         return $escape;
+    }
+
+    /**
+     * Resets all internal state flags and temporary scope data>
+     */
+
+    protected function _reset_state() {
+        
+        $this->_with = array();
+        $this->_temporary_return_type = $this->return_type;
+        $this->_temporary_with_deleted = FALSE;
+        $this->qb_as_value = FALSE;
+        $this->qb_as_sql = FALSE;
+        $this->qb_distinct = FALSE;
     }
 
 }
