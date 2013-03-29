@@ -836,6 +836,30 @@ class MY_Model extends CI_Model
         return $this->_table;
     }
 
+    /**
+     * A wrapper to $this->db->list_fields()
+     */
+    public function list_fields()
+    {
+        return $this->_database->list_fields($this->_table);
+    }
+
+    /**
+     * A wrapper to $this->db->field_exists()
+     */
+    public function field_exists($field_name)
+    {
+        return $this->_database->field_exists($field_name, $this->_table);
+    }
+
+    /**
+     * A wrapper to $this->db->field_data()
+     */
+    public function field_data()
+    {
+        return $this->_database->field_data($this->_table);
+    }
+
     /* --------------------------------------------------------------
      * GLOBAL SCOPES
      * ------------------------------------------------------------ */

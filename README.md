@@ -487,6 +487,8 @@ class product_controller extends CI_Controller
 }
 ```
 
+* The wrapper methods list_fields(), field_exists($field_name) and field_data() have been added.
+
 **GLOBAL SCOPES**
 * A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
 
