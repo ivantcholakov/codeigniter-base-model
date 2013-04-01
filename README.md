@@ -393,7 +393,7 @@ Changelog
 **Version 1.0.0 - 1.1.0**
 * Initial Releases
 
-Additional Features by Ivan Tcholakov, 2012.
+Additional Features by Ivan Tcholakov, 2012-2013.
 --------------------------------------------------
 
 **First, an important note by Ivan Tcholakov:** I hate writing tests, this is why: http://www.joelonsoftware.com/items/2009/09/23.html . The purpose of this repository is for keeping some new ad-hoc introduced features, which I use in my projects. I recommend you to go to the original repository of Jamie Rumbelow, https://github.com/jamierumbelow/codeigniter-base-model .
@@ -488,6 +488,9 @@ class product_controller extends CI_Controller
 ```
 
 * The wrapper methods list_fields(), field_exists($field_name) and field_data() have been added.
+* The database() getter method has been added.
+* The fields() method has been added. It returns an array witn names of the existing fields within the tables, also it caches its result for avoiding multiple database queries.
+* The get_empty() method has been added. It returns an empty record with NULL values. Respects 'after_get' observers.
 
 **GLOBAL SCOPES**
 * A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
@@ -559,3 +562,38 @@ var_dump($search_list);
 ```
 
 * The method distinct() has been added.
+
+**INPUT DATA FILTRATION BEFORE INSERT/UPDATE**
+* A new flag has been added that enforces removal of input data fields that don't exist within the table. An example:
+
+```php
+class Pages extends MY_Model
+{
+
+    protected $check_for_existing_fields = TRUE;    // This flag enforces the input filtration.
+                                                    // Set it to TRUE for enabling the feature.
+    public $protected_attributes = array('id');
+
+    protected $_table = 'pages';
+
+    ...
+}
+```
+
+After that, within a controller you may use data from a html form directly, all the extra-data from it will be ignored:
+
+```php
+    ...
+        if ($this->form_validation->run())
+        {
+            $id = (int) $this->input->post('id');               // TODO: Validate $id. It is not done here for simplicity.
+            $this->pages->update($id, $this->input->post());    // Also note, that 'id' has been declared as a "protected attribute".
+
+            // Set a confirmation message here.
+        } 
+        else
+        {
+            // Set an error message here.
+        }
+    ...
+```

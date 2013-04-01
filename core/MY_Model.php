@@ -62,6 +62,11 @@ class MY_Model extends CI_Model
     public $_database;
 
     /**
+     * Here a list of table fields e to be stored when is is required.
+     */
+    protected $_fields = NULL;
+
+    /**
      * This model's default primary key or unique identifier.
      * Used by the get(), update() and delete() functions.
      */
@@ -93,6 +98,13 @@ class MY_Model extends CI_Model
      * Protected, non-modifiable attributes
      */
     protected $protected_attributes = array();
+
+    /**
+     * If this flag is TRUE before insert and before update, non-existent
+     * (within the table) fields from input data are removed.
+     * Currently works with array-type input data only.
+     */
+    protected $check_for_existing_fields = FALSE;
 
     /**
      * Relationship arrays. Use flat strings for defaults or string
@@ -176,6 +188,12 @@ class MY_Model extends CI_Model
 
         array_unshift($this->before_create, 'protect_attributes');
         array_unshift($this->before_update, 'protect_attributes');
+
+        if ($this->check_for_existing_fields)
+        {
+            array_unshift($this->before_create, 'existing_fields_only');
+            array_unshift($this->before_update, 'existing_fields_only');
+        }
 
         $this->_reset_state();
 
@@ -779,7 +797,6 @@ class MY_Model extends CI_Model
         return $result;
     }
 
-
     /**
      * Truncates the table
      */
@@ -904,6 +921,29 @@ class MY_Model extends CI_Model
         $this->_reset_state();
 
         return isset($row[$this->primary_key]);
+    }
+
+    /**
+     * Prepares and returns an empty record based on all the existing
+     * table fields. The returned result may be an array or an object
+     * depending on the model's settings.
+     * Triggers 'after_get' observers.
+     * If not modified by the obervers, the returned field values are NULL's.
+     */
+    public function get_empty()
+    {
+        $row = array_fill_keys($this->fields(), NULL);
+
+        if ($this->_temporary_return_type != 'array')
+        {
+            $row = (object) $row;
+        }
+
+        $row = $this->trigger('after_get', $row);
+
+        $this->_reset_state();
+
+        return $row;
     }
 
     /**
@@ -1044,11 +1084,38 @@ class MY_Model extends CI_Model
     }
 
     /**
+     * A getter for database object.
+     */
+    public function database()
+    {
+        return $this->_database();
+    }
+
+    /**
      * Getter for the table name
      */
     public function table()
     {
         return $this->_table;
+    }
+
+    /**
+     * Returns a list of fields as array of strings of the corresponding table.
+     * It queries the database only once and caches the result.
+     */
+    public function fields()
+    {
+        if (!is_array($this->_fields))
+        {
+            $this->_fields = $this->_database->list_fields($this->_table);
+
+            if (empty($this->_fields))
+            {
+                $this->_fields = array();
+            }
+        }
+
+        return $this->_fields;
     }
 
     /**
@@ -1206,6 +1273,21 @@ class MY_Model extends CI_Model
             {
                 unset($row[$attr]);
             }
+        }
+
+        return $row;
+    }
+
+    /*
+     * Removes non-existent (within the table) fields from input data.
+     * Currently works with array-type input data only.
+     */
+    public function existing_fields_only($row)
+    {
+        if (is_array($row))
+        {
+            // See array_only() function in Laravel.
+            $row = array_intersect_key($row, array_flip((array) $this->fields()));
         }
 
         return $row;
@@ -1822,8 +1904,8 @@ class MY_Model extends CI_Model
      * Resets all internal state flags and temporary scope data>
      */
 
-    protected function _reset_state() {
-        
+    protected function _reset_state()
+    {
         $this->_with = array();
         $this->_temporary_return_type = $this->return_type;
         $this->_temporary_with_deleted = FALSE;
