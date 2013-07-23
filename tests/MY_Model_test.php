@@ -449,7 +449,7 @@ class MY_Model_tests extends PHPUnit_Framework_TestCase
         $this->model->_database->expects($this->once())->method('row')->will($this->returnValue($object));
         $author_model->_database->expects($this->once())->method('row')->will($this->returnValue($author_object));
 
-        $this->model->load->expects($this->once())->method('model')->with('author_model')
+        $this->model->load->expects($this->once())->method('model')->with('author_model', 'author_model')
                           ->will($this->returnCallback(function() use ($self, $author_model){
                               $self->model->author_model = $author_model;
                           }));
@@ -485,9 +485,9 @@ class MY_Model_tests extends PHPUnit_Framework_TestCase
         $this->model->_database->expects($this->once())->method('row')->will($this->returnValue($object));
         $comment_model->_database->expects($this->once())->method('result')->will($this->returnValue(array( $comment_object, $comment_object_2 )));
 
-        $this->model->load->expects($this->once())->method('model')->with('comment_model')
+        $this->model->load->expects($this->once())->method('model')->with('comment_model', 'comments_model')
                           ->will($this->returnCallback(function() use ($self, $comment_model){
-                              $self->model->comment_model = $comment_model;
+                              $self->model->comments_model = $comment_model;
                           }));
 
         $this->assertEquals($expected_object, $this->model->with('comments')->get(1));
@@ -540,7 +540,7 @@ class MY_Model_tests extends PHPUnit_Framework_TestCase
     protected function _validatable_model($validate_pass_or_fail = TRUE)
     {
         $model = new Validated_model();
-        $model->form_validation = m::mock('form validation class');
+        $model->form_validation = m::mock('form_validation_class');
         $model->form_validation->shouldIgnoreMissing();
         $model->form_validation->shouldReceive('run')
                                ->andReturn($validate_pass_or_fail);
@@ -682,6 +682,23 @@ class MY_Model_tests extends PHPUnit_Framework_TestCase
                         ->will($this->returnValue('fake_record_here'));
 
         $this->assertEquals($this->model->with_deleted()->get(2), 'fake_record_here');
+    }
+
+    public function test_only_deleted()
+    {
+        $this->model = new Soft_delete_model();
+        $this->model->_database = $this->getMock('MY_Model_Mock_DB');
+
+        $this->model->_database->expects($this->once())
+                        ->method('where')
+                        ->with($this->equalTo('deleted'), $this->equalTo(TRUE))
+                        ->will($this->returnValue($this->model->_database));
+        $this->_expect_get();
+        $this->model->_database->expects($this->once())
+                        ->method('result')
+                        ->will($this->returnValue(array('fake_record_here')));
+        
+        $this->assertEquals($this->model->only_deleted()->get_all(), array('fake_record_here'));
     }
 
     /* --------------------------------------------------------------

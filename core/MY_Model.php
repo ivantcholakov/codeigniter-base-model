@@ -78,6 +78,7 @@ class MY_Model extends CI_Model
     protected $soft_delete = FALSE;
     protected $soft_delete_key = 'deleted';
     protected $_temporary_with_deleted = FALSE;
+    protected $_temporary_only_deleted = FALSE;
 
     /**
      * The various callbacks available to the model. Each are
@@ -224,7 +225,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -264,7 +265,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -321,7 +322,7 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -429,7 +430,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->where($this->primary_key, $primary_value)
@@ -473,7 +474,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->where_in($this->primary_key, $primary_values)
@@ -526,7 +527,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->set($data, '', $escape)->limit(1);
@@ -578,7 +579,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, FALSE);
+                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->set($data, '', $escape);
@@ -614,7 +615,7 @@ class MY_Model extends CI_Model
         
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->set($data, '', $escape);
@@ -833,6 +834,11 @@ class MY_Model extends CI_Model
 
     public function relate($row)
     {
+        if (empty($row))
+        {
+            return $row;
+        }
+
         foreach ($this->belongs_to as $key => $value)
         {
             if (is_string($value))
@@ -848,14 +854,14 @@ class MY_Model extends CI_Model
 
             if (in_array($relationship, $this->_with))
             {
-                $this->load->model($options['model']);
+                $this->load->model($options['model'], $relationship . '_model');
                 if (is_object($row))
                 {
-                    $row->{$relationship} = $this->{$options['model']}->get($row->{$options['primary_key']});
+                    $row->{$relationship} = $this->{$relationship . '_model'}->get($row->{$options['primary_key']});
                 }
                 else
                 {
-                    $row[$relationship] = $this->{$options['model']}->get($row[$options['primary_key']]);
+                    $row[$relationship] = $this->{$relationship . '_model'}->get($row[$options['primary_key']]);
                 }
             }
         }
@@ -875,14 +881,14 @@ class MY_Model extends CI_Model
 
             if (in_array($relationship, $this->_with))
             {
-                $this->load->model($options['model']);
+                $this->load->model($options['model'], $relationship . '_model');
                 if (is_object($row))
                 {
-                    $row->{$relationship} = $this->{$options['model']}->get_many_by($options['primary_key'], $row->{$this->primary_key});
+                    $row->{$relationship} = $this->{$relationship . '_model'}->get_many_by($options['primary_key'], $row->{$this->primary_key});
                 }
                 else
                 {
-                    $row[$relationship] = $this->{$options['model']}->get_many_by($options['primary_key'], $row[$this->primary_key]);
+                    $row[$relationship] = $this->{$relationship . '_model'}->get_many_by($options['primary_key'], $row[$this->primary_key]);
                 }
             }
         }
@@ -903,7 +909,7 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->select($this->primary_key)
@@ -967,7 +973,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->select(array($key, $value));
@@ -1006,7 +1012,7 @@ class MY_Model extends CI_Model
         /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         return $this->_database->count_all_results($this->_table);
@@ -1024,7 +1030,7 @@ class MY_Model extends CI_Model
         /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         return $this->_database->count_all($this->_table);
@@ -1032,7 +1038,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, FALSE);
+            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
         }
 
         if ($this->qb_as_sql)
@@ -1165,20 +1171,29 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * Converts the return row into a value (extracts the first column).
-     */
-    public function as_value()
-    {
-        $this->qb_as_value = TRUE;
-        return $this;
-    }
-
-    /**
      * Don't care about soft deleted rows on the next call
      */
     public function with_deleted()
     {
         $this->_temporary_with_deleted = TRUE;
+        return $this;
+    }
+
+    /**
+     * Only get deleted rows on the next call
+     */
+    public function only_deleted()
+    {
+        $this->_temporary_only_deleted = TRUE;
+        return $this;
+    }
+
+    /**
+     * Converts the return row into a value (extracts the first column).
+     */
+    public function as_value()
+    {
+        $this->qb_as_value = TRUE;
         return $this;
     }
 
@@ -1801,9 +1816,17 @@ class MY_Model extends CI_Model
         {
             $this->_database->where($params[0]);
         }
-        else
+        elseif (count($params) == 2)
         {
             $this->_database->where($params[0], $params[1]);
+        }
+        elseif (count($params) == 3)
+        {
+            $this->_database->where($params[0], $params[1], $params[2]);
+        }
+        else
+        {
+            $this->_database->where($params);
         }
     }
 
@@ -1909,6 +1932,7 @@ class MY_Model extends CI_Model
         $this->_with = array();
         $this->_temporary_return_type = $this->return_type;
         $this->_temporary_with_deleted = FALSE;
+        $this->_temporary_only_deleted = FALSE;
         $this->qb_as_value = FALSE;
         $this->qb_as_sql = FALSE;
         $this->qb_distinct = FALSE;
