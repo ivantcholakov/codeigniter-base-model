@@ -1785,7 +1785,7 @@ class MY_Model extends CI_Model
     private function _set_database()
     {
         // Was a DB group specified by the user?
-        if ($this->_db_group !== NULL)
+        if (isset($this->_db_group))
         {
             $this->_database = $this->load->database($this->_db_group, TRUE, TRUE);
         }
@@ -1793,7 +1793,7 @@ class MY_Model extends CI_Model
         else
         {
             // Has the default connection been loaded yet?
-            if ( ! isset($this->db) OR ! is_object($this->db))
+            if ( ! isset($this->db) OR ! is_object($this->db) OR empty($this->db->conn_id))
             {
                 $this->load->database('', FALSE, TRUE);
             }
