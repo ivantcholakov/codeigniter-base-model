@@ -79,6 +79,7 @@ class MY_Model extends CI_Model
     protected $soft_delete_key = 'deleted';
     protected $_temporary_with_deleted = FALSE;
     protected $_temporary_only_deleted = FALSE;
+    protected $soft_delete_key_full = NULL; // The constructor initializes this.
 
     /**
      * The various callbacks available to the model. Each are
@@ -187,6 +188,8 @@ class MY_Model extends CI_Model
         $this->_set_database();
         $this->_fetch_table();
 
+        $this->soft_delete_key_full = $this->_table.'.'.$this->soft_delete_key;
+
         array_unshift($this->before_create, 'protect_attributes');
         array_unshift($this->before_update, 'protect_attributes');
 
@@ -225,7 +228,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -265,7 +268,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -322,7 +325,7 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->trigger('before_get');
@@ -430,7 +433,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+                $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->where($this->primary_key, $primary_value)
@@ -474,7 +477,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+                $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->where_in($this->primary_key, $primary_values)
@@ -527,7 +530,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+                $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->set($data, '', $escape)->limit(1);
@@ -579,7 +582,7 @@ class MY_Model extends CI_Model
         {
             if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
             {
-                $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+                $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
             }
 
             $this->_database->set($data, '', $escape);
@@ -615,7 +618,7 @@ class MY_Model extends CI_Model
         
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->set($data, '', $escape);
@@ -651,11 +654,11 @@ class MY_Model extends CI_Model
             if ($this->qb_as_sql)
             {
                 // Return an SQL statement as a result.
-                $this->_database->set($this->soft_delete_key, TRUE);
+                $this->_database->set($this->soft_delete_key_full, TRUE);
                 return $this->_return_sql('update');
             }
 
-            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key_full => TRUE ));
         }
         else
         {
@@ -694,12 +697,12 @@ class MY_Model extends CI_Model
             if ($this->qb_as_sql)
             {
                 // Return an SQL statement as a result.
-                $this->_database->set($this->soft_delete_key, TRUE);
+                $this->_database->set($this->soft_delete_key_full, TRUE);
                 return $this->_return_sql('update');
             }
 
             $result = $this->_database
-                ->update($this->_table, array( $this->soft_delete_key => TRUE ));
+                ->update($this->_table, array( $this->soft_delete_key_full => TRUE ));
         }
         else
         {
@@ -735,11 +738,11 @@ class MY_Model extends CI_Model
             if ($this->qb_as_sql)
             {
                 // Return an SQL statement as a result.
-                $this->_database->set($this->soft_delete_key, TRUE);
+                $this->_database->set($this->soft_delete_key_full, TRUE);
                 return $this->_return_sql('update');
             }
 
-            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key_full => TRUE ));
         }
         else
         {
@@ -774,11 +777,11 @@ class MY_Model extends CI_Model
             if ($this->qb_as_sql)
             {
                 // Return an SQL statement as a result.
-                $this->_database->set($this->soft_delete_key, TRUE);
+                $this->_database->set($this->soft_delete_key_full, TRUE);
                 return $this->_return_sql('update');
             }
 
-            $result = $this->_database->update($this->_table, array( $this->soft_delete_key => TRUE ));
+            $result = $this->_database->update($this->_table, array( $this->soft_delete_key_full => TRUE ));
         }
         else
         {
@@ -909,7 +912,7 @@ class MY_Model extends CI_Model
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->select($this->primary_key)
@@ -973,7 +976,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         $this->_database->select(array($key, $value));
@@ -1012,7 +1015,7 @@ class MY_Model extends CI_Model
         /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         return $this->_database->count_all_results($this->_table);
@@ -1030,7 +1033,7 @@ class MY_Model extends CI_Model
         /*
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         return $this->_database->count_all($this->_table);
@@ -1038,7 +1041,7 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
-            $this->_database->where($this->soft_delete_key, (bool)$this->_temporary_only_deleted);
+            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
         }
 
         if ($this->qb_as_sql)
@@ -1383,6 +1386,23 @@ class MY_Model extends CI_Model
     {
         $this->qb_distinct = is_bool($val) ? $val : TRUE;
         $this->_database->distinct($val);
+        return $this;
+    }
+
+    /**
+     * A wrapper to $this->_database->join()
+     */
+    public function join($table, $cond, $type = '', $escape = NULL)
+    {
+        if ($this->_is_ci_3)
+        {
+            $this->_database->join($table, $cond, $type, $escape);
+        }
+        else
+        {
+            $this->_database->join($table, $cond, $type);
+        }
+
         return $this;
     }
 
