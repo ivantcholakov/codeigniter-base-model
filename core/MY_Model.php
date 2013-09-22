@@ -42,7 +42,7 @@ class MY_Model extends CI_Model
      * guessed by pluralising the model name.
      */
     protected $_table;
-    
+
     /**
      * Specify a database group to manually connect this model
      * to the specified DB. You can pass either the group name
@@ -52,7 +52,7 @@ class MY_Model extends CI_Model
      * the default DB will be used.
      */
     protected $_db_group;
-    
+
     /**
      * The database connection object. Will be set to the default
      * connection unless $this->_db_group is specified. This allows
@@ -248,7 +248,7 @@ class MY_Model extends CI_Model
             // Return an SQL statement as a result.
             return $this->_return_sql('select');
         }
-        
+
         $row = $this->_database
             ->get($this->_table)
             ->{$this->_return_type()}();
@@ -305,7 +305,7 @@ class MY_Model extends CI_Model
             // Return an SQL statement as a result.
             return $this->_return_sql('select');
         }
-        
+
         $result = $this->_database
             ->get($this->_table)
             ->{$this->_return_type(1)}();
@@ -581,7 +581,7 @@ class MY_Model extends CI_Model
         $escape = $this->_check_default_escape($escape);
 
         $data = $this->trigger('before_update', $data);
-        
+
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
@@ -652,9 +652,10 @@ class MY_Model extends CI_Model
     public function delete_by()
     {
         $where = func_get_args();
-        $this->_set_where($where);
 
         $where = $this->trigger('before_delete', $where);
+
+        $this->_set_where($where);
 
         if ($this->soft_delete)
         {
@@ -734,9 +735,10 @@ class MY_Model extends CI_Model
     public function delete_many_by()
     {
         $where = func_get_args();
-        $this->_set_where($where);
 
         $where = $this->trigger('before_delete', $where);
+
+        $this->_set_where($where);
 
         if ($this->soft_delete)
         {
@@ -890,7 +892,7 @@ class MY_Model extends CI_Model
             // Return an SQL statement as a result.
             return $this->_return_sql('select');
         }
-        
+
         $row = $this->_database->get($this->_table)->row_array();
 
         $this->_reset_state();
@@ -952,7 +954,7 @@ class MY_Model extends CI_Model
             // Return an SQL statement as a result.
             return $this->_return_sql('select');
         }
-        
+
         $result = $this->_database->get($this->_table)->result_array();
 
         $options = array();
@@ -1147,7 +1149,7 @@ class MY_Model extends CI_Model
         $this->_temporary_with_deleted = TRUE;
         return $this;
     }
-    
+
     /**
      * Only get deleted rows on the next call
      */
