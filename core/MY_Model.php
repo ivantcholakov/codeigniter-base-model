@@ -42,7 +42,7 @@ class MY_Model extends CI_Model
      * guessed by pluralising the model name.
      */
     protected $_table;
-
+    
     /**
      * Specify a database group to manually connect this model
      * to the specified DB. You can pass either the group name
@@ -223,37 +223,7 @@ class MY_Model extends CI_Model
      */
     public function get($primary_value)
     {
-        $this->_database->where($this->primary_key, $primary_value)
-            ->limit(1);
-
-        if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
-        {
-            $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
-        }
-
-        $this->trigger('before_get');
-
-        if ($this->qb_as_sql)
-        {
-            // Return an SQL statement as a result.
-            return $this->_return_sql('select');
-        }
-        
-        $row = $this->_database
-            ->get($this->_table)
-            ->{$this->_return_type()}();
-
-        $row = $this->trigger('after_get', $row);
-
-        if ($this->qb_as_value)
-        {
-            // Return a single value as a result.
-            return $this->_return_value($row);
-        }
-
-        $this->_reset_state();
-
-        return $row;
+        return $this->get_by($this->primary_key, $primary_value);
     }
 
     /**
@@ -358,8 +328,6 @@ class MY_Model extends CI_Model
     {
         $escape = $this->_check_default_escape($escape);
 
-        $valid = TRUE;
-
         if ($skip_validation === FALSE)
         {
             $data = $this->validate($data);
@@ -419,8 +387,6 @@ class MY_Model extends CI_Model
     public function update($primary_value, $data, $skip_validation = FALSE, $escape = NULL)
     {
         $escape = $this->_check_default_escape($escape);
-
-        $valid = TRUE;
 
         $data = $this->trigger('before_update', $data);
 
@@ -1181,7 +1147,7 @@ class MY_Model extends CI_Model
         $this->_temporary_with_deleted = TRUE;
         return $this;
     }
-
+    
     /**
      * Only get deleted rows on the next call
      */
