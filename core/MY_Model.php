@@ -1065,7 +1065,7 @@ class MY_Model extends CI_Model
      */
     public function database()
     {
-        return $this->_database();
+        return $this->_database;
     }
 
     /**
@@ -1074,6 +1074,14 @@ class MY_Model extends CI_Model
     public function table()
     {
         return $this->_table;
+    }
+
+    /**
+     * Getter for the primary key.
+     */
+    public function primary_key()
+    {
+        return $this->primary_key;
     }
 
     /**
