@@ -497,6 +497,7 @@ class product_controller extends CI_Controller
 * The fields() method has been added. It returns an array witn names of the existing fields within the tables, also it caches its result for avoiding multiple database queries.
 * The get_empty() method has been added. It returns an empty record with NULL values. Respects 'after_get' observers.
 * The wrapper method join() has been added.
+* The primary_key() getter method has been added.
 
 **GLOBAL SCOPES**
 * A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
