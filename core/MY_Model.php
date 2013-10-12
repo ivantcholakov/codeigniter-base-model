@@ -1780,6 +1780,13 @@ class MY_Model extends CI_Model
      */
     private function _set_database()
     {
+        if (!class_exists('CI_DB', FALSE))
+        {
+            // There is no connection. Skip silently.
+            // Possibly specific requests do not require database connection.
+            return;
+        }
+
         // Was a DB group specified by the user?
         if (isset($this->_db_group))
         {
