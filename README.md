@@ -436,6 +436,7 @@ if ( ! $this->agent->is_robot())
 
 * The method order_by() accepts third parameter $escape which should work as of CI 3.0.0.
 * The methods update(), update_many(), update_by(), update_many_by(), update_all(), count_by(), count_all(), exists() are to respect soft deletion.
+* New methods: first() - an alias of get_by(), and find() - an alias of get_many_by().
 
 **CRUD INTERFACE**
 * New methods update_many_by() and delete_many_by() have been added.
