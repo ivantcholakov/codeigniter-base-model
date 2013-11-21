@@ -539,6 +539,8 @@ ORDER BY `promotext` DESC, `category_id` ASC
 */
 ```
 
+* A new method as_json() has been added, it enforces JSON presentation of the returned result.
+
 **QUERY BUILDER DIRECT ACCESS METHODS**
 * The method select($select = '*', $escape = NULL) has been added. An example:
 
