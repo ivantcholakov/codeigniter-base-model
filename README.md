@@ -496,8 +496,8 @@ class product_controller extends CI_Controller
 * The database() getter method has been added.
 * The fields() method has been added. It returns an array witn names of the existing fields within the tables, also it caches its result for avoiding multiple database queries.
 * The get_empty() method has been added. It returns an empty record with NULL values. Respects 'after_get' observers.
-* The wrapper method join() has been added.
 * The primary_key() getter method has been added.
+* The wrapper method table_exists() has been added.
 
 **GLOBAL SCOPES**
 * A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
@@ -569,6 +569,7 @@ var_dump($search_list);
 ```
 
 * The method distinct() has been added.
+* The wrapper method join() has been added.
 
 **INPUT DATA FILTRATION BEFORE INSERT/UPDATE**
 * A new flag has been added that enforces removal of input data fields that don't exist within the table. An example:
