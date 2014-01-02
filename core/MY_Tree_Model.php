@@ -26,9 +26,9 @@
 
 // If your system uses class autoloading feature,
 // then the following require statement would not be needed.
-//if (!class_exists('MY_Model', false)) {
-//    require dirname(__FILE__).'/MY_Model.php';
-//}
+if (!class_exists('MY_Model', false)) {
+    require dirname(__FILE__).'/MY_Model.php';
+}
 
 class MY_Tree_Model extends MY_Model {
 
