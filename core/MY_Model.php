@@ -275,6 +275,7 @@ class MY_Model extends CI_Model
         {
             return json_encode($row);
         }
+
         return $row;
     }
 
