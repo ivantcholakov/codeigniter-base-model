@@ -1906,7 +1906,7 @@ class MY_Model extends CI_Model
      */
     protected function _fetch_primary_key()
     {
-        if ($this->primary_key == NULL)
+        if ($this->primary_key == NULL && $this->table_exists())
         {
             $row = $this->_database->query("SHOW KEYS FROM `".$this->_table."` WHERE Key_name = 'PRIMARY'")->row();
 
