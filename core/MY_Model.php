@@ -225,6 +225,32 @@ class MY_Model extends CI_Model
         }
     }
 
+    /**
+     * An empty method that keeps chaining, the parameter does the desired operation as a side-effect.
+     *
+     * Sample usage (you want to build the query using one PHP sentence):
+     *
+     * $for_male = true;    // Assign this using the user input.
+     *
+     * $found_products = $this->products
+     *     ->select('id', 'name')
+     *     ->where('in_stock', 1)
+     *     ->that($for_male ? $this->products->where('for_male', 1) : null)
+     *     ->limit(20)
+     *     ->order_by('price', 'asc')
+     *     ->as_array()
+     *     ->find();
+     *
+     * var_dump($found_products);
+     *
+     * @param   mixed   $expression     A (conditional) expression that changes context/scope.
+     * @return  object                  Returns a reference to the created model instance.
+     */
+    public function that($expression = NULL)
+    {
+        return $this;
+    }
+
     /* --------------------------------------------------------------
      * CRUD INTERFACE
      * ------------------------------------------------------------ */
@@ -1143,6 +1169,14 @@ class MY_Model extends CI_Model
     }
 
     /**
+     * A getter for database object.
+     */
+    public function database()
+    {
+        return $this->_database;
+    }
+
+    /**
      * A setter for database object.
      * Use case example: A cloned query builder may be set on a clone of this model.
      */
@@ -1151,14 +1185,6 @@ class MY_Model extends CI_Model
         $this->_database = $db;
 
         return $this;
-    }
-
-    /**
-     * A getter for database object.
-     */
-    public function database()
-    {
-        return $this->_database;
     }
 
     /**
