@@ -541,6 +541,7 @@ ORDER BY `promotext` DESC, `category_id` ASC
 ```
 
 * A new method as_json() has been added, it enforces JSON presentation of the returned result.
+* A new method skip_observers() has been added, it disables triggering of all the attached/registered observers.
 
 **QUERY BUILDER DIRECT ACCESS METHODS**
 * The method select($select = '*', $escape = NULL) has been added. An example:
