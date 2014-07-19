@@ -608,3 +608,6 @@ After that, within a controller you may use data from a html form directly, all 
         }
     ...
 ```
+
+**MORE OBSERVERS**
+* More built-in observers have been added: 'created_by', 'updated_by', 'deleted_at', and 'deleted_by'.
