@@ -156,7 +156,8 @@ class MY_Model extends CI_Model
     /**
      * Additional scope that enforces JSON presentation of the returned result.
      */
-    protected $_as_json = NULL;
+    protected $_as_json = FALSE;
+    protected $_as_json_options = 0;
 
     /**
      * A flag indicating $this->distinct() usage.
@@ -310,14 +311,12 @@ class MY_Model extends CI_Model
             return $this->_return_value($row);
         }
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($row);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($row);
-        }
 
         return $row;
     }
@@ -391,14 +390,12 @@ class MY_Model extends CI_Model
             $row = $this->trigger('after_get', $row, ($key == count($result) - 1));
         }
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($result);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($result);
-        }
 
         return $result;
     }
@@ -983,14 +980,12 @@ class MY_Model extends CI_Model
 
         $result = isset($row[$this->primary_key]);
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($result);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($result);
-        }
 
         return $result;
     }
@@ -1013,14 +1008,12 @@ class MY_Model extends CI_Model
 
         $row = $this->trigger('after_get', $row);
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($row);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($row);
-        }
 
         return $row;
     }
@@ -1075,14 +1068,12 @@ class MY_Model extends CI_Model
 
         $options = $this->trigger('after_dropdown', $options);
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($options);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($options);
-        }
 
         return $options;
     }
@@ -1143,14 +1134,12 @@ class MY_Model extends CI_Model
 
         $result = $this->_database->count_all_results($this->_table);
 
-        $as_json = $this->_as_json;
+        if ($this->_as_json)
+        {
+            return $this->_return_json($result);
+        }
 
         $this->_reset_state();
-
-        if ($as_json)
-        {
-            return json_encode($result);
-        }
 
         return $result;
     }
@@ -1322,10 +1311,14 @@ class MY_Model extends CI_Model
 
     /**
      * Forces returning JSON encoded data as a result.
+     * @param int $options  Same parameter as in json_encode() function (PHP >= 5.3.0)
+     * @link http://php.net/manual/en/function.json-encode.php
+     * @link http://php.net/manual/en/json.constants.php
      */
-    public function as_json()
+    public function as_json($options = 0)
     {
         $this->_as_json = TRUE;
+        $this->_as_json_options = $options;
         return $this;
     }
 
@@ -2091,10 +2084,6 @@ class MY_Model extends CI_Model
      */
     protected function _return_value(& $row)
     {
-        $as_json = $this->_as_json;
-
-        $this->_reset_state();
-
         $result = NULL;
 
         if (is_array($row))
@@ -2114,12 +2103,23 @@ class MY_Model extends CI_Model
             }
         }
 
-        if ($as_json)
+        if ($this->_as_json)
         {
-            return json_encode($result);
+            return $this->_return_json($result);
         }
 
+        $this->_reset_state();
+
         return $result;
+    }
+
+    protected function _return_json(& $data)
+    {
+        $as_json_options = $this->_as_json_options;
+
+        $this->_reset_state();
+
+        return is_php('5.3.0') ? json_encode($data, $as_json_options) : json_encode($data);
     }
 
     /**
@@ -2194,6 +2194,7 @@ class MY_Model extends CI_Model
         $this->qb_as_sql = FALSE;
         $this->qb_distinct = FALSE;
         $this->_as_json = FALSE;
+        $this->_as_json_options = 0;
         $this->_temporary_skip_observers = FALSE;
     }
 
@@ -2205,8 +2206,8 @@ class MY_Model extends CI_Model
         if (is_callable($this->user_id_getter))
         {
             return is_array($this->user_id_getter)
-                    ? $this->user_id_getter[0]->{$this->user_id_getter[1]}()
-                    : call_user_func($this->user_id_getter);
+                ? $this->user_id_getter[0]->{$this->user_id_getter[1]}()
+                : call_user_func($this->user_id_getter);
         }
 
         return NULL;
