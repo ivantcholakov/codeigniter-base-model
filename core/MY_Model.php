@@ -431,6 +431,8 @@ class MY_Model extends CI_Model
 
             $this->trigger('after_create', $insert_id);
 
+            $this->_reset_state();
+
             return $insert_id;
         }
 
@@ -445,12 +447,14 @@ class MY_Model extends CI_Model
     public function insert_many($data, $skip_validation = FALSE, $escape = NULL)
     {
         $return_sql = $this->qb_as_sql;
+        $skip_observers = $this->_temporary_skip_observers;
 
         $ids = array();
 
         foreach ($data as $key => $row)
         {
             $this->qb_as_sql = $return_sql;
+            $this->_temporary_skip_observers = $skip_observers;
 
             // A correction by Ivan Tcholakov, 14-DEC-2012.
             //$ids[] = $this->insert($row, $skip_validation, ($key == count($data) - 1));
