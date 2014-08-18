@@ -39,7 +39,7 @@ Extend your model classes from `MY_Model` and all the functionality will be bake
 Naming Conventions
 ------------------
 
-This class will try to guess the name of the table to use, by finding the plural of the class name. 
+This class will try to guess the name of the table to use, by finding the plural of the class name.
 
 For instance:
 
@@ -87,7 +87,7 @@ These are instance variables usually defined at the class level. They are arrays
 class Book_model extends MY_Model
 {
     public $before_create = array( 'timestamps' );
-    
+
     protected function timestamps($book)
     {
         $book['created_at'] = $book['updated_at'] = date('Y-m-d H:i:s');
@@ -120,7 +120,7 @@ You can enable validation by setting the `$validate` instance to the usual form 
     class User_model extends MY_Model
     {
         public $validate = array(
-            array( 'field' => 'email', 
+            array( 'field' => 'email',
                    'label' => 'email',
                    'rules' => 'required|valid_email|is_unique[users.email]' ),
             array( 'field' => 'password',
@@ -261,14 +261,14 @@ Take, for example, a `Book_model`:
 We can enable soft delete by setting the `$this->soft_delete` key:
 
     class Book_model extends MY_Model
-    { 
+    {
         protected $soft_delete = TRUE;
     }
 
 By default, MY_Model expects a `TINYINT` or `INT` column named `deleted`. If you'd like to customise this, you can set `$soft_delete_key`:
 
     class Book_model extends MY_Model
-    { 
+    {
         protected $soft_delete = TRUE;
         protected $soft_delete_key = 'book_deleted_status';
     }
@@ -282,7 +282,7 @@ If you'd like to include deleted columns, you can use the `with_deleted()` scope
 
     => $this->book_model->with_deleted()->get_by('user_id', 1);
     -> SELECT * FROM books WHERE user_id = 1
-    
+
 If you'd like to include only the columns that have been deleted, you can use the `only_deleted()` scope:
 
     => $this->book_model->only_deleted()->get_by('user_id', 1);
@@ -514,6 +514,16 @@ $parent_id = $this->categories
     ->get($id);     // NULL is returned if the containing record is not found.
 ```
 
+Note: Also, a special method value() has been added for serving cases like this one:
+
+```php
+// The following expression works, but it is quite verbose (username and email are assumed as unique):
+$user_id = $this->users->select('id')->where('user_id', $user_id)->or_where('email', $email)->as_value()->first();
+
+// This is the simpler way:
+$user_id = $this->users->where('username', $username)->or_where('email', $email)->value('id');
+```
+
 * A new method as_sql() has been added. It forces get*(), insert*(), update*(), delete*() and some other methods to return compiled SQL as a string (or an array of strings). This result modifier is convenient for debugging purposes. An example:
 
 ```php
@@ -602,7 +612,7 @@ After that, within a controller you may use data from a html form directly, all 
             $this->pages->update($id, $this->input->post());    // Also note, that 'id' has been declared as a "protected attribute".
 
             // Set a confirmation message here.
-        } 
+        }
         else
         {
             // Set an error message here.
