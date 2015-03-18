@@ -105,6 +105,7 @@ class product_controller extends CI_Controller
 * The primary_key() getter method has been added.
 * The wrapper method table_exists() has been added.
 * The wrapper method reset_query() has been added (for CodeIgniter 3).
+* The method count_all_results() has been added as an alias of count_all().
 
 **GLOBAL SCOPES**
 * A new method as_value() has been added. By using it (with get() and get_by() methods only) retrieving single values gets easy. An example:
