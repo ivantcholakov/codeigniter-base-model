@@ -404,6 +404,7 @@ Additional Features by Ivan Tcholakov, 2012-2015.
 **First, an important note by Ivan Tcholakov:** I hate writing tests, this is why: http://www.joelonsoftware.com/items/2009/09/23.html . The purpose of this repository is for keeping some new ad-hoc introduced features, which I use in my projects. I recommend you to go to the original repository of Jamie Rumbelow, https://github.com/jamierumbelow/codeigniter-base-model .
 
 **BEHAVIOR CHANGES**
+* When an instance that is derived from MY_Model is clonned, the internal query builder instance is clonned too.
 * The clause LIMIT 1 has been added within the methods get(), get_by(), update(), update_by(), delete(), delete_by(). It should work with MySQL at least. This is for prevention targeting more than one records by an accident.
 * The internal method _set_where() accepts an empty WHERE parameter (NULL or an empty string). So *_by() methods may be injected preliminary with complex WHERE clauses this way:
 
