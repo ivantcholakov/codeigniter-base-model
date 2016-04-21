@@ -2,7 +2,7 @@
 codeigniter-base-model
 =====================================
 
-Additional Features by Ivan Tcholakov, 2012-2015.
+Additional Features by Ivan Tcholakov, 2012-2016.
 --------------------------------------------------
 
 **First, an important note by Ivan Tcholakov:** I hate writing tests, this is why: http://www.joelonsoftware.com/items/2009/09/23.html . The purpose of this repository is for keeping some new ad-hoc introduced features, which I use in my projects. I recommend you to go to the original repository of Jamie Rumbelow, https://github.com/jamierumbelow/codeigniter-base-model .
