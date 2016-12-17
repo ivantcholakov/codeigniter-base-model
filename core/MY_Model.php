@@ -513,7 +513,12 @@ class MY_Model extends CI_Model
             }
 
             $this->_database->where($this->primary_key, $primary_value)
-                ->set($data, '', $escape)->limit(1);
+                ->set($data, '', $escape);
+
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
@@ -609,7 +614,12 @@ class MY_Model extends CI_Model
                 $this->_database->where($this->soft_delete_key_full, (bool)$this->_temporary_only_deleted);
             }
 
-            $this->_database->set($data, '', $escape)->limit(1);
+            $this->_database->set($data, '', $escape);
+
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
@@ -725,7 +735,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $this->_database->limit(1);
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
@@ -738,7 +751,10 @@ class MY_Model extends CI_Model
         }
         else
         {
-            $this->_database->limit(1);
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
@@ -769,7 +785,10 @@ class MY_Model extends CI_Model
 
         if ($this->soft_delete)
         {
-            $this->_database->limit(1);
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
@@ -783,7 +802,10 @@ class MY_Model extends CI_Model
         }
         else
         {
-            $this->_database->limit(1);
+            // See http://www.sqlite.org/compile.html#enable_update_delete_limit
+            if (strpos($this->_dbdriver, 'sqlite') === false && strpos($this->_subdriver, 'sqlite') === false) {
+                $this->_database->limit(1);
+            }
 
             if ($this->qb_as_sql)
             {
