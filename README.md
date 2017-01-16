@@ -18,8 +18,8 @@ $this->load->model('products');
 $this->products
     ->where('out_of_stock', 0)
     ->group_start()                         // As of CI 3.0.0
-    ->like('name', 'sandals')
-    ->or_like('description', 'sandals')
+        ->like('name', 'sandals')
+        ->or_like('description', 'sandals')
     ->group_end()                           // As of CI 3.0.0
 ;                                           // This is our complex WHERE clause.
                                             // It is to be used by the next statement.
@@ -179,8 +179,8 @@ $this->load->model('products');
 $search_list = $this->products
     ->where('out_of_stock', 0)
     ->group_start()                         // Works on CI 3.0.0
-    ->like('name', 'sandals')
-    ->or_like('description', 'sandals')
+        ->like('name', 'sandals')
+        ->or_like('description', 'sandals')
     ->group_end()                           // Works on CI 3.0.0
     ->get_many_by()                         // or ->find()
 ;
