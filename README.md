@@ -15,7 +15,7 @@ Additional Features by Ivan Tcholakov, 2012-2016.
 ```php
 $this->load->model('products');
 
-$this->products->db
+$this->products
     ->where('out_of_stock', 0)
     ->group_start()                         // As of CI 3.0.0
     ->like('name', 'sandals')
@@ -24,7 +24,7 @@ $this->products->db
 ;                                           // This is our complex WHERE clause.
                                             // It is to be used by the next statement.
 
-$search_list = $this->products->get_many_by();  // get_many_by() without parameters.
+$search_list = $this->products->get_many_by();  // get_many_by() without parameters, find() is a newer preferable alias.
 
 var_dump($search_list);
 
@@ -182,7 +182,7 @@ $search_list = $this->products
     ->like('name', 'sandals')
     ->or_like('description', 'sandals')
     ->group_end()                           // Works on CI 3.0.0
-    ->get_many_by()
+    ->get_many_by()                         // or ->find()
 ;
 // SELECT * FROM `products` WHERE `out_of_stock` =0 AND ( `name` LIKE '%sandals%' ESCAPE '!' OR `description` LIKE '%sandals%' ESCAPE '!' )
 
