@@ -453,7 +453,7 @@ class MY_Model extends CI_Model
 
             $this->_database->insert($this->_table);
 
-            $insert_id = $this->_database->insert_id();
+            $insert_id = $this->primary_key != '' ? $this->_database->insert_id() : null;
 
             $this->trigger('after_create', $insert_id);
 
