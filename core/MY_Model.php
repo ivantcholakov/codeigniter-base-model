@@ -528,7 +528,7 @@ class MY_Model extends CI_Model
 
             $result = $this->_database->update($this->_table);
 
-            $this->trigger('after_update', array($data, $result));
+            $this->trigger('after_update', array($data, $result, $primary_value));
 
             $this->_reset_state();
 
@@ -572,7 +572,7 @@ class MY_Model extends CI_Model
 
             $result = $this->_database->update($this->_table);
 
-            $this->trigger('after_update', array($data, $result));
+            $this->trigger('after_update', array($data, $result, $primary_values));
 
             $this->_reset_state();
 
